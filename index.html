@@ -14,46 +14,54 @@
     .tab.active { color: #1677ff; border-bottom-color: #1677ff; }
     .content { display: none; }
     .content.active { display: block; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px; }
     .form-group { display: flex; flex-direction: column; }
-    label { font-size: 13px; color: #555; margin-bottom: 6px; font-weight: 500;}
+    label { font-size: 13px; color: #555; margin-bottom: 6px; font-weight: 500; }
+    label span { color: red; }
     input, select, textarea { padding: 10px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; outline: none; }
     input:focus, select:focus, textarea:focus { border-color: #1677ff; }
-    textarea { resize: vertical; min-height: 60px; }
     button { padding: 10px 20px; background: #1677ff; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
     button:hover { background: #0958d9; }
     
-    /* 表格横向滚动设置 */
+    /* 核心：横向滚动条 */
     .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #e8e8e8; border-radius: 8px; background: #fff; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 1700px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 1900px; /* 强制宽表 */ }
     th, td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
     th { background: #fafafa; font-weight: 600; color: #333; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
     tr:hover { background: #fcfcfc; }
     
     /* 列宽控制 */
-    th:nth-child(1) { width: 90px; }  /* 出片时间 */
-    th:nth-child(2) { width: 100px; } /* Mask */
-    th:nth-child(3) { width: 130px; } /* Lot/Wafer */
-    th:nth-child(4) { width: 140px; } /* 刻号 */
-    th:nth-child(5) { width: 200px; } /* 测试需求 */
-    th:nth-child(6) { width: 80px; }  /* 状态 */
-    th:nth-child(7) { width: 80px; }  /* 负责人 */
-    th:nth-child(8) { width: 100px; } /* 存放位置 */
-    th:nth-child(9) { width: 90px; }  /* 测试开始 */
-    th:nth-child(10) { width: 90px; } /* 完成时间 */
-    th:nth-child(11) { width: 80px; } /* 是否划片 */
-    th:nth-child(12) { width: 250px; }/* 备注信息 */
+    th:nth-child(1) { width: 100px; } /* 出片时间 */
+    th:nth-child(2) { width: 120px; } /* Mask */
+    th:nth-child(3) { width: 120px; } /* Lot */
+    th:nth-child(4) { width: 120px; } /* Wafer */
+    th:nth-child(5) { width: 150px; } /* Remarks */
+    th:nth-child(6) { width: 200px; } /* 测试内容 */
+    th:nth-child(7) { width: 90px; }  /* 测试时间 */
+    th:nth-child(8) { width: 200px; } /* 测试情况 */
+    th:nth-child(9) { width: 100px; } /* PIE负责人 */
+    th:nth-child(10) { width: 80px; } /* 是否划片 */
+    th:nth-child(11) { width: 100px; }/* 存放位置 */
+    th:nth-child(12) { width: 100px; }/* 晶圆状态 */
+    th:nth-child(13) { width: 100px; }/* 完成时间 */
 
+    /* 状态高亮与色彩 */
     .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; white-space: nowrap; }
     .status-wait { background: #fffbe6; color: #d48806; border: 1px solid #ffe58f; }
     .status-testing { background: #e6f4ff; color: #0958d9; border: 1px solid #91caff; }
     .status-done { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
     .status-hold { background: #fff0f6; color: #c41d7f; border: 1px solid #ffadd2; }
+    .status-error { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; }
+    
+    /* 出片时间高亮 */
+    .ship-date { color: #0958d9; font-weight: 600; background: #f0f8ff; padding: 2px 6px; border-radius: 4px; }
     
     .btn-edit { padding: 4px 10px; font-size: 12px; background: #fff; color: #1677ff; border: 1px solid #1677ff; border-radius: 4px; cursor: pointer; white-space: nowrap; }
     .btn-edit:hover { background: #e6f4ff; }
+    
+    /* 弹窗 */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
-    .modal-content { background: #fff; padding: 24px; border-radius: 8px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+    .modal-content { background: #fff; padding: 24px; border-radius: 8px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; }
     .modal h2 { margin-top: 0; font-size: 18px; margin-bottom: 16px; }
     .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
     .btn-cancel { background: #fff; color: #555; border: 1px solid #d9d9d9; }
@@ -61,9 +69,6 @@
     .msg-success { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; display: block; }
     .msg-error { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; display: block; }
     .import-box { margin-bottom: 20px; padding: 15px; background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 6px; }
-    .import-box label { font-weight: bold; color: #389e0d; font-size: 14px; }
-    
-    /* 备注长文本限制 */
     .note-text { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; font-size: 12px; color: #666; line-height: 1.5; }
   </style>
 </head>
@@ -78,80 +83,90 @@
 
     <div id="msg" class="message"></div>
 
+    <!-- PIE 登记端 -->
     <div id="tab-pie" class="content active">
       <div class="import-box">
-        <label>📦 批量导入历史 Excel 数据（仅首次导入）</label>
-        <input type="file" id="batchFile" accept=".json" style="display: block; margin-top: 10px; background: #fff;" onchange="handleBatchImport(event)">
+        <label>📦 批量导入历史数据（仅首次导入）</label>
+        <input type="file" id="batchFile" accept=".json" style="display: block; margin-top: 10px;" onchange="handleBatchImport(event)">
         <div id="batchStatus" style="margin-top: 8px; font-size: 13px; color: #555;"></div>
       </div>
-      <hr style="border: none; border-top: 1px dashed #e8e8e8; margin-bottom: 20px;">
-
+      
       <div class="form-grid">
-        <div class="form-group"><label>Mask *</label><input type="text" id="pie-mask" placeholder="如 ESP015"></div>
-        <div class="form-group"><label>Lot</label><input type="text" id="pie-lot" placeholder="如 E220201"></div>
-        <div class="form-group"><label>Wafer</label><input type="text" id="pie-wafer" placeholder="如 S5"></div>
-        <div class="form-group"><label>刻号</label><input type="text" id="pie-etchId" placeholder="如 F227TLS10331CG3"></div>
-        <div class="form-group"><label>出片时间</label><input type="date" id="pie-shipDate"></div>
-        <div class="form-group"><label>PIE 负责人</label><input type="text" id="pie-name" placeholder="您的名字"></div>
+        <div class="form-group"><label>MASK <span>*</span></label><input type="text" id="pie-mask" placeholder="如 EMP015"></div>
+        <div class="form-group"><label>LOT <span>*</span></label><input type="text" id="pie-lot" placeholder="如 T8700X.02"></div>
+        <div class="form-group"><label>WAFER <span>*</span></label><input type="text" id="pie-wafer" placeholder="如 S1"></div>
+        <div class="form-group"><label>出片时间 <span>*</span></label><input type="date" id="pie-shipDate"></div>
+        <div class="form-group"><label>PIE负责人 <span>*</span></label><input type="text" id="pie-name" placeholder="您的名字"></div>
       </div>
       <div class="form-grid" style="grid-template-columns: 1fr;">
-        <div class="form-group"><label>流片情况 (remarks)</label><input type="text" id="pie-remarks" placeholder="如 modulator wafer,掺杂1"></div>
-        <div class="form-group"><label>测试器件 / 需求 *</label><textarea id="pie-testReq" placeholder="如 C波段调制器效率测试、插损测试"></textarea></div>
+        <div class="form-group"><label>remarks <span>*</span></label><input type="text" id="pie-remarks" placeholder="如 SIN/LNOI有源集成wafer"></div>
+        <div class="form-group"><label>测试内容 <span>*</span></label><textarea id="pie-testReq" placeholder="如 包层：上： P5000 TEOS 5um/下： P5000 TEOS 400nm"></textarea></div>
       </div>
       <div style="text-align: right; margin-top: 10px;">
         <button onclick="submitPIE()">提交发货登记</button>
       </div>
     </div>
 
+    <!-- Tester 看板端 -->
     <div id="tab-tester" class="content">
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>出片时间</th>
-              <th>Mask</th>
-              <th>Lot/Wafer</th>
-              <th>刻号</th>
-              <th>测试需求</th>
-              <th>状态</th>
-              <th>负责人</th>
-              <th>存放位置</th>
-              <th>测试开始</th>
-              <th>完成时间</th>
+              <th>MASK</th>
+              <th>LOT</th>
+              <th>WAFER</th>
+              <th>remarks</th>
+              <th>测试内容</th>
+              <th>测试时间</th>
+              <th>测试情况</th>
+              <th>PIE负责人</th>
               <th>是否划片</th>
-              <th>备注信息</th>
+              <th>存放位置</th>
+              <th>晶圆状态</th>
+              <th>完成时间</th>
               <th>操作</th>
             </tr>
           </thead>
           <tbody id="tester-tbody">
-            <tr><td colspan="13" style="text-align:center; color:#999;">加载中...</td></tr>
+            <tr><td colspan="14" style="text-align:center; color:#999;">加载中...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
+  <!-- 测试更新弹窗 -->
   <div class="modal" id="updateModal">
     <div class="modal-content">
       <h2>更新测试进度</h2>
       <input type="hidden" id="upd-id">
       <div class="form-grid">
-        <div class="form-group"><label>测试负责人</label><input type="text" id="upd-testerName" placeholder="您的名字"></div>
-        <div class="form-group"><label>状态</label>
+        <div class="form-group">
+          <label>晶圆状态</label>
           <select id="upd-status">
             <option value="待测试">待测试</option>
             <option value="测试中">测试中</option>
-            <option value="完成">完成</option>
+            <option value="已完成">已完成</option>
             <option value="Hold">Hold</option>
-            <option value="异常">测试异常</option>
+            <option value="测试异常">测试异常</option>
           </select>
         </div>
-        <div class="form-group"><label>测试开始时间</label><input type="date" id="upd-startDate"></div>
-        <div class="form-group"><label>测试完成时间</label><input type="date" id="upd-endDate"></div>
-        <div class="form-group"><label>存放位置</label><input type="text" id="upd-location" placeholder="如 晶圆间、氮气柜、已寄出"></div>
+        <div class="form-group">
+          <label>是否划片</label>
+          <select id="upd-isCut">
+            <option value="">请选择</option>
+            <option value="是">是</option>
+            <option value="否">否</option>
+          </select>
+        </div>
+        <div class="form-group"><label>测试时间</label><input type="date" id="upd-startDate"></div>
+        <div class="form-group"><label>完成时间</label><input type="date" id="upd-endDate"></div>
+        <div class="form-group"><label>存放位置</label><input type="text" id="upd-location" placeholder="如 晶圆间"></div>
       </div>
       <div class="form-group" style="margin-top: 16px;">
-        <label>测试情况 / 备注</label>
+        <label>测试情况</label>
         <textarea id="upd-notes" placeholder="填写测试结果或数据简析"></textarea>
       </div>
       <div class="modal-footer">
@@ -162,9 +177,7 @@
   </div>
 
   <script>
-    // ⚠️ 请保留你刚才测试成功的那个 API_URL（不要动这一行）
-    // 如果你之前在 Vercel 里用了 /api/data，就填 /api/data
-    // 如果用的是其他成功的地址，就保持原样。
+    // 保持你现有的地址不变
     const API_URL = '/api/data'; 
     
     let waferData = [];
@@ -191,7 +204,7 @@
 
     async function loadData() {
       const tbody = document.getElementById('tester-tbody');
-      tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; color:#999;">加载中...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="14" style="text-align:center; color:#999;">加载中...</td></tr>';
       try {
         const res = await fetch(API_URL);
         const data = await res.json();
@@ -199,37 +212,39 @@
         waferData.sort((a, b) => (b.shipDate || '').localeCompare(a.shipDate || ''));
         renderTable();
       } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; color:red;">加载失败，请检查网络或配置</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="14" style="text-align:center; color:red;">加载失败，请检查网络或配置</td></tr>';
       }
     }
 
     function renderTable() {
       const tbody = document.getElementById('tester-tbody');
       if (!waferData || waferData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; color:#999;">暂无流转记录</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="14" style="text-align:center; color:#999;">暂无流转记录</td></tr>';
         return;
       }
 
       tbody.innerHTML = waferData.map((item, index) => {
         let badgeClass = 'status-wait';
         if (item.status === '测试中') badgeClass = 'status-testing';
-        if (item.status === '完成') badgeClass = 'status-done';
-        if (item.status === 'Hold' || item.status === '异常') badgeClass = 'status-hold';
+        if (item.status === '已完成' || item.status === '完成') badgeClass = 'status-done';
+        if (item.status === 'Hold') badgeClass = 'status-hold';
+        if (item.status === '测试异常' || item.status === '异常') badgeClass = 'status-error';
 
         return `
           <tr>
-            <td>${item.shipDate || '-'}</td>
+            <td><span class="ship-date">${item.shipDate || '-'}</span></td>
             <td><strong>${item.mask || '-'}</strong></td>
-            <td>${item.lot ? item.lot + ' / ' : ''}${item.wafer || '-'}</td>
-            <td>${item.etchId || '-'}</td>
-            <td>${item.testReq || '-'}</td>
-            <td><span class="badge ${badgeClass}">${item.status || '待测试'}</span></td>
-            <td>${item.testerName || '-'}</td>
-            <td>${item.location || '-'}</td>
+            <td>${item.lot || '-'}</td>
+            <td>${item.wafer || '-'}</td>
+            <td><div class="note-text" title="${item.remarks || ''}">${item.remarks || '-'}</div></td>
+            <td><div class="note-text" title="${item.testReq || ''}">${item.testReq || '-'}</div></td>
             <td>${item.testStartDate || '-'}</td>
-            <td>${item.testEndDate || '-'}</td>
+            <td><div class="note-text" title="${item.testNotes || ''}">${item.testNotes || '-'}</div></td>
+            <td>${item.pieName || '-'}</td>
             <td>${item.isCut || '-'}</td>
-            <td><div class="note-text" title="${item.notes || ''}">${item.notes || '-'}</div></td>
+            <td>${item.location || '-'}</td>
+            <td><span class="badge ${badgeClass}">${item.status || '待测试'}</span></td>
+            <td>${item.testEndDate || '-'}</td>
             <td><button class="btn-edit" onclick="openUpdateModal(${index})">更新</button></td>
           </tr>
         `;
@@ -237,22 +252,22 @@
     }
 
     async function submitPIE() {
-      const mask = document.getElementById('pie-mask').value.trim();
-      const testReq = document.getElementById('pie-testReq').value.trim();
-      if (!mask || !testReq) return showMsg('Mask 和 测试需求 不能为空', 'error');
-
       const newRecord = {
         id: Date.now().toString(),
-        mask,
+        mask: document.getElementById('pie-mask').value.trim(),
         lot: document.getElementById('pie-lot').value.trim(),
         wafer: document.getElementById('pie-wafer').value.trim(),
-        etchId: document.getElementById('pie-etchId').value.trim(),
         remarks: document.getElementById('pie-remarks').value.trim(),
-        testReq,
+        testReq: document.getElementById('pie-testReq').value.trim(),
         shipDate: document.getElementById('pie-shipDate').value,
         pieName: document.getElementById('pie-name').value.trim(),
-        testerName: '', testStartDate: '', testEndDate: '', status: '待测试', location: '', isCut: '', notes: ''
+        testerName: '', testStartDate: '', testEndDate: '', 
+        status: '待测试', location: '', isCut: '', testNotes: ''
       };
+
+      if (!newRecord.mask || !newRecord.lot || !newRecord.wafer || !newRecord.shipDate || !newRecord.pieName || !newRecord.remarks || !newRecord.testReq) {
+        return showMsg('请填写所有带 * 的必填项', 'error');
+      }
 
       try {
         const getRes = await fetch(API_URL);
@@ -266,7 +281,7 @@
         });
 
         showMsg('提交成功', 'success');
-        ['pie-mask', 'pie-lot', 'pie-wafer', 'pie-etchId', 'pie-remarks', 'pie-testReq'].forEach(id => document.getElementById(id).value = '');
+        ['pie-mask', 'pie-lot', 'pie-wafer', 'pie-remarks', 'pie-testReq'].forEach(id => document.getElementById(id).value = '');
         switchTab('tester');
       } catch (e) {
         showMsg('网络错误，请重试', 'error');
@@ -276,12 +291,12 @@
     function openUpdateModal(index) {
       const item = waferData[index];
       document.getElementById('upd-id').value = index;
-      document.getElementById('upd-testerName').value = item.testerName || '';
       document.getElementById('upd-status').value = item.status || '待测试';
+      document.getElementById('upd-isCut').value = item.isCut || '';
       document.getElementById('upd-startDate').value = item.testStartDate || '';
       document.getElementById('upd-endDate').value = item.testEndDate || '';
       document.getElementById('upd-location').value = item.location || '';
-      document.getElementById('upd-notes').value = item.notes || '';
+      document.getElementById('upd-notes').value = item.testNotes || '';
       document.getElementById('updateModal').style.display = 'flex';
     }
 
@@ -291,12 +306,12 @@
 
     async function submitUpdate() {
       const index = document.getElementById('upd-id').value;
-      waferData[index].testerName = document.getElementById('upd-testerName').value.trim();
       waferData[index].status = document.getElementById('upd-status').value;
+      waferData[index].isCut = document.getElementById('upd-isCut').value;
       waferData[index].testStartDate = document.getElementById('upd-startDate').value;
       waferData[index].testEndDate = document.getElementById('upd-endDate').value;
       waferData[index].location = document.getElementById('upd-location').value.trim();
-      waferData[index].notes = document.getElementById('upd-notes').value.trim();
+      waferData[index].testNotes = document.getElementById('upd-notes').value.trim();
 
       try {
         await fetch(API_URL, {
