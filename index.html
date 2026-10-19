@@ -7,16 +7,13 @@
   <style>
     * { box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
-    .container { background: #fff; max-width: 1300px; width: 100%; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 28px; }
+    .container { background: #fff; max-width: 1400px; width: 100%; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 28px; }
     h1 { font-size: 24px; text-align: center; margin-bottom: 24px; color: #1a1a1a; }
-    
     .tabs { display: flex; border-bottom: 2px solid #e8e8e8; margin-bottom: 24px; }
     .tab { padding: 12px 24px; cursor: pointer; font-size: 16px; font-weight: 600; color: #666; border-bottom: 2px solid transparent; margin-bottom: -2px; }
     .tab.active { color: #1677ff; border-bottom-color: #1677ff; }
-
     .content { display: none; }
     .content.active { display: block; }
-
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px; }
     .form-group { display: flex; flex-direction: column; }
     label { font-size: 13px; color: #555; margin-bottom: 6px; font-weight: 500;}
@@ -25,34 +22,26 @@
     textarea { resize: vertical; min-height: 60px; }
     button { padding: 10px 20px; background: #1677ff; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
     button:hover { background: #0958d9; }
-
     .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 1100px; }
     th, td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; }
     th { background: #fafafa; font-weight: 600; color: #333; white-space: nowrap; }
     tr:hover { background: #fcfcfc; }
-    
     .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; white-space: nowrap; }
     .status-wait { background: #fffbe6; color: #d48806; border: 1px solid #ffe58f; }
     .status-testing { background: #e6f4ff; color: #0958d9; border: 1px solid #91caff; }
     .status-done { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
     .status-hold { background: #fff0f6; color: #c41d7f; border: 1px solid #ffadd2; }
-    
     .btn-edit { padding: 4px 10px; font-size: 12px; background: #fff; color: #1677ff; border: 1px solid #1677ff; border-radius: 4px; cursor: pointer; }
     .btn-edit:hover { background: #e6f4ff; }
-
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
     .modal-content { background: #fff; padding: 24px; border-radius: 8px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
     .modal h2 { margin-top: 0; font-size: 18px; margin-bottom: 16px; }
     .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
     .btn-cancel { background: #fff; color: #555; border: 1px solid #d9d9d9; }
-    .btn-cancel:hover { background: #f5f5f5; }
-
     .message { padding: 10px; border-radius: 6px; margin-bottom: 16px; display: none; text-align: center; font-size: 14px; }
     .msg-success { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; display: block; }
     .msg-error { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; display: block; }
-
-    /* 批量导入区块样式 */
     .import-box { margin-bottom: 20px; padding: 15px; background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 6px; }
     .import-box label { font-weight: bold; color: #389e0d; font-size: 14px; }
   </style>
@@ -68,18 +57,14 @@
 
     <div id="msg" class="message"></div>
 
-    <!-- PIE 登记端 -->
     <div id="tab-pie" class="content active">
-      
-      <!-- 批量导入区 -->
       <div class="import-box">
-        <label>📦 批量导入历史 Excel 数据（仅限首次导入）</label>
+        <label>📦 批量导入历史 Excel 数据（仅首次导入）</label>
         <input type="file" id="batchFile" accept=".json" style="display: block; margin-top: 10px; background: #fff;" onchange="handleBatchImport(event)">
         <div id="batchStatus" style="margin-top: 8px; font-size: 13px; color: #555;"></div>
       </div>
       <hr style="border: none; border-top: 1px dashed #e8e8e8; margin-bottom: 20px;">
 
-      <!-- 单条登记区 -->
       <div class="form-grid">
         <div class="form-group"><label>Mask *</label><input type="text" id="pie-mask" placeholder="如 ESP015"></div>
         <div class="form-group"><label>Lot</label><input type="text" id="pie-lot" placeholder="如 E220201"></div>
@@ -97,7 +82,6 @@
       </div>
     </div>
 
-    <!-- Tester 看板端 -->
     <div id="tab-tester" class="content">
       <div class="table-wrap">
         <table>
@@ -122,7 +106,6 @@
     </div>
   </div>
 
-  <!-- 测试人员更新弹窗 -->
   <div class="modal" id="updateModal">
     <div class="modal-content">
       <h2>更新测试进度</h2>
@@ -154,12 +137,17 @@
   </div>
 
   <script>
-    const API_URL = '/.netlify/functions/wafers';
+    // ==========================================
+    // ⚠️ 填入你截图里的 ID 和 API KEY
+    const BIN_ID = '6ad5c6f7ac6210605a3e00d8';  // 你的 ID
+    const API_KEY = '$2a$10$DFsL4uEFjACFW.3AKrAnU.xuCaLQjhilb0ni.TZTOkB7lEpvGApQi'; // 去左侧 API KEYS 复制
+    // ==========================================
+
+    const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
     let waferData = [];
 
     window.addEventListener('DOMContentLoaded', () => {
       loadData();
-      // 默认日期设为今天
       document.getElementById('pie-shipDate').valueAsDate = new Date();
     });
 
@@ -178,59 +166,24 @@
       setTimeout(() => el.className = 'message', 3000);
     }
 
-    // ========== 批量导入逻辑 ==========
-    async function handleBatchImport(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      
-      const statusEl = document.getElementById('batchStatus');
-      statusEl.style.color = '#555';
-      statusEl.textContent = '正在读取文件...';
-      
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const items = JSON.parse(e.target.result);
-          statusEl.textContent = `读取成功，共 ${items.length} 条。正在分批上传...`;
-          
-          let successCount = 0;
-          // 分块发送，每块 50 条，防止超时
-          for (let i = 0; i < items.length; i += 50) {
-            const chunk = items.slice(i, i + 50);
-            statusEl.textContent = `正在上传第 ${i+1} 到 ${i+chunk.length} 条...`;
-            
-            const res = await fetch(API_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'bulk_create', items: chunk })
-            });
-            
-            if (!res.ok) throw new Error(`服务器错误: ${res.status}`);
-            successCount += chunk.length;
-          }
-          
-          statusEl.textContent = `🎉 导入成功！共写入 ${successCount} 条记录。请切换到“实验室流转看板”查看。`;
-          statusEl.style.color = 'green';
-          event.target.value = ''; // 清空文件选择
-          loadData(); // 自动刷新下方的看板
-        } catch (err) {
-          statusEl.textContent = `❌ 导入失败: ${err.message}`;
-          statusEl.style.color = 'red';
-        }
-      };
-      reader.readAsText(file);
-    }
-    // =================================
-
     async function loadData() {
       const tbody = document.getElementById('tester-tbody');
       tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#999;">加载中...</td></tr>';
       try {
-        const res = await fetch(API_URL);
-        waferData = await res.json();
+        const res = await fetch(`${API_URL}/latest`, {
+            headers: { 'X-Master-Key': API_KEY }
+        });
+        const json = await res.json();
+        // 🌟 容错处理：如果读到的不是数组，说明是刚刚建库的空对象，强行置空
+        if (Array.isArray(json.record)) {
+            waferData = json.record;
+        } else {
+            waferData = []; 
+        }
+        waferData.sort((a, b) => (b.shipDate || '').localeCompare(a.shipDate || ''));
         renderTable();
       } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:red;">加载失败，请检查网络</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:red;">加载失败，请检查网络或API配置</td></tr>';
       }
     }
 
@@ -241,7 +194,7 @@
         return;
       }
 
-      tbody.innerHTML = waferData.map(item => {
+      tbody.innerHTML = waferData.map((item, index) => {
         let badgeClass = 'status-wait';
         if (item.status === '测试中') badgeClass = 'status-testing';
         if (item.status === '完成') badgeClass = 'status-done';
@@ -250,14 +203,14 @@
         return `
           <tr>
             <td>${item.shipDate || '-'}</td>
-            <td><strong>${item.mask}</strong></td>
-            <td>${item.lot ? item.lot + ' / ' : ''}${item.wafer}</td>
+            <td><strong>${item.mask || '-'}</strong></td>
+            <td>${item.lot ? item.lot + ' / ' : ''}${item.wafer || '-'}</td>
             <td>${item.etchId || '-'}</td>
             <td style="max-width: 200px; white-space: normal;">${item.testReq || '-'}</td>
-            <td><span class="badge ${badgeClass}">${item.status}</span></td>
+            <td><span class="badge ${badgeClass}">${item.status || '待测试'}</span></td>
             <td>${item.testerName || '-'}</td>
             <td>${item.location || '-'}</td>
-            <td><button class="btn-edit" onclick="openUpdateModal('${item.id}')">更新</button></td>
+            <td><button class="btn-edit" onclick="openUpdateModal(${index})">更新</button></td>
           </tr>
         `;
       }).join('');
@@ -266,12 +219,10 @@
     async function submitPIE() {
       const mask = document.getElementById('pie-mask').value.trim();
       const testReq = document.getElementById('pie-testReq').value.trim();
-      if (!mask || !testReq) {
-        return showMsg('Mask 和 测试需求 不能为空', 'error');
-      }
+      if (!mask || !testReq) return showMsg('Mask 和 测试需求 不能为空', 'error');
 
-      const payload = {
-        action: 'create',
+      const newRecord = {
+        id: Date.now().toString(),
         mask,
         lot: document.getElementById('pie-lot').value.trim(),
         wafer: document.getElementById('pie-wafer').value.trim(),
@@ -279,40 +230,39 @@
         remarks: document.getElementById('pie-remarks').value.trim(),
         testReq,
         shipDate: document.getElementById('pie-shipDate').value,
-        pieName: document.getElementById('pie-name').value.trim()
+        pieName: document.getElementById('pie-name').value.trim(),
+        testerName: '', testStartDate: '', testEndDate: '', status: '待测试', location: '', notes: ''
       };
 
       try {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        const getRes = await fetch(`${API_URL}/latest`, { headers: { 'X-Master-Key': API_KEY } });
+        const getJson = await getRes.json();
+        let list = Array.isArray(getJson.record) ? getJson.record : [];
+        list.push(newRecord);
+
+        await fetch(API_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+          body: JSON.stringify(list)
         });
-        const result = await res.json();
-        if (result.success) {
-          showMsg(result.message, 'success');
-          ['pie-mask', 'pie-lot', 'pie-wafer', 'pie-etchId', 'pie-remarks', 'pie-testReq'].forEach(id => document.getElementById(id).value = '');
-          switchTab('tester');
-        } else {
-          showMsg(result.message, 'error');
-        }
+
+        showMsg('提交成功', 'success');
+        ['pie-mask', 'pie-lot', 'pie-wafer', 'pie-etchId', 'pie-remarks', 'pie-testReq'].forEach(id => document.getElementById(id).value = '');
+        switchTab('tester');
       } catch (e) {
         showMsg('网络错误，请重试', 'error');
       }
     }
 
-    function openUpdateModal(id) {
-      const item = waferData.find(x => x.id === id);
-      if (!item) return;
-
-      document.getElementById('upd-id').value = item.id;
+    function openUpdateModal(index) {
+      const item = waferData[index];
+      document.getElementById('upd-id').value = index;
       document.getElementById('upd-testerName').value = item.testerName || '';
       document.getElementById('upd-status').value = item.status || '待测试';
       document.getElementById('upd-startDate').value = item.testStartDate || '';
       document.getElementById('upd-endDate').value = item.testEndDate || '';
       document.getElementById('upd-location').value = item.location || '';
       document.getElementById('upd-notes').value = item.notes || '';
-
       document.getElementById('updateModal').style.display = 'flex';
     }
 
@@ -321,34 +271,61 @@
     }
 
     async function submitUpdate() {
-      const payload = {
-        action: 'update',
-        id: document.getElementById('upd-id').value,
-        testerName: document.getElementById('upd-testerName').value.trim(),
-        status: document.getElementById('upd-status').value,
-        testStartDate: document.getElementById('upd-startDate').value,
-        testEndDate: document.getElementById('upd-endDate').value,
-        location: document.getElementById('upd-location').value.trim(),
-        notes: document.getElementById('upd-notes').value.trim()
-      };
+      const index = document.getElementById('upd-id').value;
+      waferData[index].testerName = document.getElementById('upd-testerName').value.trim();
+      waferData[index].status = document.getElementById('upd-status').value;
+      waferData[index].testStartDate = document.getElementById('upd-startDate').value;
+      waferData[index].testEndDate = document.getElementById('upd-endDate').value;
+      waferData[index].location = document.getElementById('upd-location').value.trim();
+      waferData[index].notes = document.getElementById('upd-notes').value.trim();
 
       try {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        await fetch(API_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+          body: JSON.stringify(waferData)
         });
-        const result = await res.json();
-        if (result.success) {
-          closeModal();
-          showMsg(result.message, 'success');
-          loadData();
-        } else {
-          alert(result.message);
-        }
+        closeModal();
+        showMsg('更新成功', 'success');
+        loadData();
       } catch (e) {
         alert('网络错误，请重试');
       }
+    }
+
+    async function handleBatchImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const statusEl = document.getElementById('batchStatus');
+      statusEl.textContent = '正在读取文件...';
+      
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const items = JSON.parse(e.target.result);
+          statusEl.textContent = `读取成功，共 ${items.length} 条。正在上传...`;
+          
+          const getRes = await fetch(`${API_URL}/latest`, { headers: { 'X-Master-Key': API_KEY } });
+          const getJson = await getRes.json();
+          let list = Array.isArray(getJson.record) ? getJson.record : [];
+          
+          list = list.concat(items);
+          await fetch(API_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+            body: JSON.stringify(list)
+          });
+
+          statusEl.textContent = `🎉 导入成功！共写入 ${items.length} 条记录。`;
+          statusEl.style.color = 'green';
+          loadData();
+        } catch (err) {
+          statusEl.textContent = `❌ 导入失败: ${err.message}`;
+          statusEl.style.color = 'red';
+        }
+      };
+      reader.readAsText(file);
     }
   </script>
 </body>
