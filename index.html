@@ -51,6 +51,10 @@
     .message { padding: 10px; border-radius: 6px; margin-bottom: 16px; display: none; text-align: center; font-size: 14px; }
     .msg-success { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; display: block; }
     .msg-error { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; display: block; }
+
+    /* 批量导入区块样式 */
+    .import-box { margin-bottom: 20px; padding: 15px; background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 6px; }
+    .import-box label { font-weight: bold; color: #389e0d; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -66,6 +70,16 @@
 
     <!-- PIE 登记端 -->
     <div id="tab-pie" class="content active">
+      
+      <!-- 批量导入区 -->
+      <div class="import-box">
+        <label>📦 批量导入历史 Excel 数据（仅限首次导入）</label>
+        <input type="file" id="batchFile" accept=".json" style="display: block; margin-top: 10px; background: #fff;" onchange="handleBatchImport(event)">
+        <div id="batchStatus" style="margin-top: 8px; font-size: 13px; color: #555;"></div>
+      </div>
+      <hr style="border: none; border-top: 1px dashed #e8e8e8; margin-bottom: 20px;">
+
+      <!-- 单条登记区 -->
       <div class="form-grid">
         <div class="form-group"><label>Mask *</label><input type="text" id="pie-mask" placeholder="如 ESP015"></div>
         <div class="form-group"><label>Lot</label><input type="text" id="pie-lot" placeholder="如 E220201"></div>
@@ -145,6 +159,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       loadData();
+      // 默认日期设为今天
       document.getElementById('pie-shipDate').valueAsDate = new Date();
     });
 
@@ -162,6 +177,50 @@
       el.className = 'message msg-' + type;
       setTimeout(() => el.className = 'message', 3000);
     }
+
+    // ========== 批量导入逻辑 ==========
+    async function handleBatchImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const statusEl = document.getElementById('batchStatus');
+      statusEl.style.color = '#555';
+      statusEl.textContent = '正在读取文件...';
+      
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const items = JSON.parse(e.target.result);
+          statusEl.textContent = `读取成功，共 ${items.length} 条。正在分批上传...`;
+          
+          let successCount = 0;
+          // 分块发送，每块 50 条，防止超时
+          for (let i = 0; i < items.length; i += 50) {
+            const chunk = items.slice(i, i + 50);
+            statusEl.textContent = `正在上传第 ${i+1} 到 ${i+chunk.length} 条...`;
+            
+            const res = await fetch(API_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'bulk_create', items: chunk })
+            });
+            
+            if (!res.ok) throw new Error(`服务器错误: ${res.status}`);
+            successCount += chunk.length;
+          }
+          
+          statusEl.textContent = `🎉 导入成功！共写入 ${successCount} 条记录。请切换到“实验室流转看板”查看。`;
+          statusEl.style.color = 'green';
+          event.target.value = ''; // 清空文件选择
+          loadData(); // 自动刷新下方的看板
+        } catch (err) {
+          statusEl.textContent = `❌ 导入失败: ${err.message}`;
+          statusEl.style.color = 'red';
+        }
+      };
+      reader.readAsText(file);
+    }
+    // =================================
 
     async function loadData() {
       const tbody = document.getElementById('tester-tbody');
@@ -190,11 +249,11 @@
 
         return `
           <tr>
-            <td>${item.shipDate}</td>
+            <td>${item.shipDate || '-'}</td>
             <td><strong>${item.mask}</strong></td>
             <td>${item.lot ? item.lot + ' / ' : ''}${item.wafer}</td>
-            <td>${item.etchId}</td>
-            <td style="max-width: 200px; white-space: normal;">${item.testReq}</td>
+            <td>${item.etchId || '-'}</td>
+            <td style="max-width: 200px; white-space: normal;">${item.testReq || '-'}</td>
             <td><span class="badge ${badgeClass}">${item.status}</span></td>
             <td>${item.testerName || '-'}</td>
             <td>${item.location || '-'}</td>
