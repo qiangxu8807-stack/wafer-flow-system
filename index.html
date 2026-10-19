@@ -23,42 +23,29 @@
     button { padding: 10px 20px; background: #1677ff; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
     button:hover { background: #0958d9; }
     
-    /* 🌟 核心：横向滚动条与宽表设置 */
+    /* 横向滚动条与宽表设置 */
     .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #e8e8e8; border-radius: 8px; background: #fff; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 1900px; /* 强制拉宽产生滚动条 */ }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 1900px; }
     th, td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
     th { background: #fafafa; font-weight: 600; color: #333; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
     tr:hover { background: #fcfcfc; }
     
-    /* 列宽控制，防止内容挤压 */
-    th:nth-child(1) { width: 100px; } /* 出片时间 */
-    th:nth-child(2) { width: 120px; } /* MASK */
-    th:nth-child(3) { width: 120px; } /* LOT */
-    th:nth-child(4) { width: 120px; } /* WAFER */
-    th:nth-child(5) { width: 150px; } /* remarks */
-    th:nth-child(6) { width: 200px; } /* 测试内容 */
-    th:nth-child(7) { width: 90px; }  /* 测试时间 */
-    th:nth-child(8) { width: 200px; } /* 测试情况 */
-    th:nth-child(9) { width: 90px; }  /* PIE负责人 */
-    th:nth-child(10) { width: 80px; } /* 是否划片 */
-    th:nth-child(11) { width: 100px; }/* 存放位置 */
-    th:nth-child(12) { width: 100px; }/* 晶圆状态 */
-    th:nth-child(13) { width: 100px; }/* 完成时间 */
+    /* 列宽控制 */
+    th:nth-child(1) { width: 100px; } th:nth-child(2) { width: 120px; } th:nth-child(3) { width: 120px; }
+    th:nth-child(4) { width: 120px; } th:nth-child(5) { width: 150px; } th:nth-child(6) { width: 200px; }
+    th:nth-child(7) { width: 90px; }  th:nth-child(8) { width: 200px; } th:nth-child(9) { width: 90px; }
+    th:nth-child(10) { width: 80px; } th:nth-child(11) { width: 100px; } th:nth-child(12) { width: 100px; }
+    th:nth-child(13) { width: 100px; }
 
-    /* 🌟 核心：出片时间高亮块 */
+    /* 出片时间高亮块 */
     .ship-date { color: #0958d9; font-weight: 600; background: #e6f4ff; padding: 4px 8px; border-radius: 4px; display: inline-block; }
 
-    /* 🌟 核心：晶圆状态徽章配色 */
+    /* 晶圆状态徽章配色 */
     .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-    /* 默认待测试 / 待分析 (黄) */
     .status-default { background: #fffbe6; color: #d48806; border: 1px solid #ffe58f; }
-    /* 测试中 (蓝) */
     .status-testing { background: #e6f4ff; color: #0958d9; border: 1px solid #91caff; }
-    /* 完成 / 报告PPT / 分析数据excel (绿) */
     .status-done { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
-    /* Hold (粉红) */
     .status-hold { background: #fff0f6; color: #c41d7f; border: 1px solid #ffadd2; }
-    /* 测试异常 (红) */
     .status-error { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; }
     
     .btn-edit { padding: 4px 10px; font-size: 12px; background: #fff; color: #1677ff; border: 1px solid #1677ff; border-radius: 4px; cursor: pointer; white-space: nowrap; }
@@ -73,7 +60,10 @@
     .message { padding: 10px; border-radius: 6px; margin-bottom: 16px; display: none; text-align: center; font-size: 14px; }
     .msg-success { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; display: block; }
     .msg-error { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; display: block; }
-    .import-box { margin-bottom: 20px; padding: 15px; background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 6px; }
+    
+    /* 导入与清空区域 */
+    .import-box { margin-bottom: 20px; padding: 15px; background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .import-box label { font-weight: bold; color: #389e0d; font-size: 14px; }
     .note-text { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; font-size: 12px; color: #666; line-height: 1.5; }
   </style>
 </head>
@@ -91,9 +81,12 @@
     <!-- PIE 登记端 -->
     <div id="tab-pie" class="content active">
       <div class="import-box">
-        <label>📦 批量导入历史数据（仅首次导入）</label>
-        <input type="file" id="batchFile" accept=".json" style="display: block; margin-top: 10px;" onchange="handleBatchImport(event)">
-        <div id="batchStatus" style="margin-top: 8px; font-size: 13px; color: #555;"></div>
+        <div>
+          <label>📦 批量导入历史数据（仅首次导入）</label>
+          <input type="file" id="batchFile" accept=".json" style="display: block; margin-top: 10px;" onchange="handleBatchImport(event)">
+          <div id="batchStatus" style="margin-top: 8px; font-size: 13px; color: #555;"></div>
+        </div>
+        <button style="background: #ff4d4f; margin-left: 20px;" onclick="clearAllData()">🗑️ 清空所有数据</button>
       </div>
       
       <div class="form-grid">
@@ -185,9 +178,7 @@
   </div>
 
   <script>
-    // ⚠️ 如果你之前成功使用的是 Vercel 的 KV (/api/data)，保持原样即可
     const API_URL = '/api/data'; 
-    
     let waferData = [];
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -217,7 +208,6 @@
         const res = await fetch(API_URL);
         const data = await res.json();
         waferData = data || [];
-        // 按出片时间倒序
         waferData.sort((a, b) => (b.shipDate || '').localeCompare(a.shipDate || ''));
         renderTable();
       } catch (e) {
@@ -270,7 +260,6 @@
         testReq: document.getElementById('pie-testReq').value.trim(),
         shipDate: document.getElementById('pie-shipDate').value,
         pieName: document.getElementById('pie-name').value.trim(),
-        // 以下字段默认空值
         testerName: '', testStartDate: '', testEndDate: '', 
         status: '待测试', location: '', isCut: '', testNotes: ''
       };
@@ -301,7 +290,6 @@
     function openUpdateModal(index) {
       const item = waferData[index];
       document.getElementById('upd-id').value = index;
-      // 如果数据库里有非选项里的状态，设置给下拉框会变成空白，这里做一下容错
       document.getElementById('upd-status').value = item.status || '待测试';
       document.getElementById('upd-isCut').value = item.isCut || '';
       document.getElementById('upd-startDate').value = item.testStartDate || '';
@@ -370,6 +358,23 @@
         }
       };
       reader.readAsText(file);
+    }
+
+    // 🌟 新增：一键清空数据功能
+    async function clearAllData() {
+      if (!confirm("⚠️ 警告：确定要清空数据库里的所有数据吗？此操作不可逆！")) return;
+      
+      try {
+        await fetch(API_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: '[]'
+        });
+        showMsg('数据已全部清空', 'success');
+        loadData();
+      } catch (e) {
+        alert('清空失败，请检查网络');
+      }
     }
   </script>
 </body>
