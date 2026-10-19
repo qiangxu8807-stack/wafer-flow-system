@@ -23,8 +23,22 @@
     button { padding: 10px 20px; background: #1677ff; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
     button:hover { background: #0958d9; }
     
-    .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #e8e8e8; border-radius: 8px; background: #fff; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 2050px; /* 加宽了表格以容纳新列 */ }
+    /* 🌟 核心修改：强制显示滚动条并加粗 */
+    .table-wrap { 
+      width: 100%; 
+      overflow-x: scroll !important; /* 强制显示滚动条 */
+      border: 1px solid #e8e8e8; 
+      border-radius: 8px; 
+      background: #fff; 
+      padding-bottom: 10px; /* 留出滚动条空间 */
+    }
+    /* 自定义滚动条样式（适用于Chrome/Edge） */
+    .table-wrap::-webkit-scrollbar { height: 14px; }
+    .table-wrap::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    .table-wrap::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; border: 2px solid #f1f1f1; }
+    .table-wrap::-webkit-scrollbar-thumb:hover { background: #555; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 2200px; /* 强制拉宽表格 */ }
     th, td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
     th { background: #fafafa; font-weight: 600; color: #333; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
     tr:hover { background: #fcfcfc; }
@@ -142,11 +156,9 @@
   </div>
 
   <script>
-    // ==============================================================
     const BIN_ID = '6ad5df11ffd5d1605377f31e'; 
     const API_KEY = '$2a$10$DFsL4uEFjACFW.3AKrAnU.xuCaLQjhilb0ni.TZTOkB7lEpvGApQi';
     const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-    // ==============================================================
 
     let waferData = [];
 
@@ -170,14 +182,11 @@
       setTimeout(() => el.className = 'message', 3000);
     }
 
-    // 🌟 核心修复：请求时加上随机时间戳，击穿 JSONBin 的 CDN 缓存
     async function loadData() {
       const tbody = document.getElementById('tester-tbody');
       tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; color:#999;">加载中...</td></tr>';
       try {
-        const res = await fetch(`${API_URL}/latest?_t=${Date.now()}`, { 
-          headers: { 'X-Master-Key': API_KEY } 
-        });
+        const res = await fetch(`${API_URL}/latest?_t=${Date.now()}`, { headers: { 'X-Master-Key': API_KEY } });
         if (!res.ok) throw new Error(`获取数据失败: ${res.status}`);
         const json = await res.json();
         waferData = Array.isArray(json.record) ? json.record : [];
@@ -342,7 +351,6 @@
       reader.readAsText(file);
     }
 
-    // 🌟 核心修复：强制清空本地变量，并延迟请求绕过服务器缓存
     async function clearAllData() {
       if (!confirm("⚠️ 警告：确定要清空数据库里的所有数据吗？此操作不可逆！")) return;
       
@@ -361,16 +369,12 @@
         }
 
         showMsg('云端数据已清空', 'success');
-        
-        // 强制将本地数组置空，并重新渲染表格为“暂无记录”
         waferData = []; 
         renderTable();
-        
-        // 延迟 2 秒后重新拉取（带上防缓存参数），确保万无一失
         setTimeout(loadData, 2000);
       } catch (e) {
         alert(e.message);
-        loadData(); // 报错了就恢复显示
+        loadData();
       }
     }
   </script>
