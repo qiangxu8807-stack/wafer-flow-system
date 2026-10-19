@@ -23,38 +23,43 @@
     button { padding: 10px 20px; background: #1677ff; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
     button:hover { background: #0958d9; }
     
-    /* 核心：横向滚动条 */
+    /* 🌟 核心：横向滚动条与宽表设置 */
     .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #e8e8e8; border-radius: 8px; background: #fff; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 1900px; /* 强制宽表 */ }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 1900px; /* 强制拉宽产生滚动条 */ }
     th, td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
     th { background: #fafafa; font-weight: 600; color: #333; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
     tr:hover { background: #fcfcfc; }
     
-    /* 列宽控制 */
+    /* 列宽控制，防止内容挤压 */
     th:nth-child(1) { width: 100px; } /* 出片时间 */
-    th:nth-child(2) { width: 120px; } /* Mask */
-    th:nth-child(3) { width: 120px; } /* Lot */
-    th:nth-child(4) { width: 120px; } /* Wafer */
-    th:nth-child(5) { width: 150px; } /* Remarks */
+    th:nth-child(2) { width: 120px; } /* MASK */
+    th:nth-child(3) { width: 120px; } /* LOT */
+    th:nth-child(4) { width: 120px; } /* WAFER */
+    th:nth-child(5) { width: 150px; } /* remarks */
     th:nth-child(6) { width: 200px; } /* 测试内容 */
     th:nth-child(7) { width: 90px; }  /* 测试时间 */
     th:nth-child(8) { width: 200px; } /* 测试情况 */
-    th:nth-child(9) { width: 100px; } /* PIE负责人 */
+    th:nth-child(9) { width: 90px; }  /* PIE负责人 */
     th:nth-child(10) { width: 80px; } /* 是否划片 */
     th:nth-child(11) { width: 100px; }/* 存放位置 */
     th:nth-child(12) { width: 100px; }/* 晶圆状态 */
     th:nth-child(13) { width: 100px; }/* 完成时间 */
 
-    /* 状态高亮与色彩 */
+    /* 🌟 核心：出片时间高亮块 */
+    .ship-date { color: #0958d9; font-weight: 600; background: #e6f4ff; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+
+    /* 🌟 核心：晶圆状态徽章配色 */
     .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-    .status-wait { background: #fffbe6; color: #d48806; border: 1px solid #ffe58f; }
+    /* 默认待测试 / 待分析 (黄) */
+    .status-default { background: #fffbe6; color: #d48806; border: 1px solid #ffe58f; }
+    /* 测试中 (蓝) */
     .status-testing { background: #e6f4ff; color: #0958d9; border: 1px solid #91caff; }
+    /* 完成 / 报告PPT / 分析数据excel (绿) */
     .status-done { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+    /* Hold (粉红) */
     .status-hold { background: #fff0f6; color: #c41d7f; border: 1px solid #ffadd2; }
+    /* 测试异常 (红) */
     .status-error { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; }
-    
-    /* 出片时间高亮 */
-    .ship-date { color: #0958d9; font-weight: 600; background: #f0f8ff; padding: 2px 6px; border-radius: 4px; }
     
     .btn-edit { padding: 4px 10px; font-size: 12px; background: #fff; color: #1677ff; border: 1px solid #1677ff; border-radius: 4px; cursor: pointer; white-space: nowrap; }
     .btn-edit:hover { background: #e6f4ff; }
@@ -147,8 +152,11 @@
           <label>晶圆状态</label>
           <select id="upd-status">
             <option value="待测试">待测试</option>
+            <option value="待分析">待分析</option>
             <option value="测试中">测试中</option>
-            <option value="已完成">已完成</option>
+            <option value="完成">完成</option>
+            <option value="分析数据excel">分析数据excel</option>
+            <option value="报告PPT">报告PPT</option>
             <option value="Hold">Hold</option>
             <option value="测试异常">测试异常</option>
           </select>
@@ -177,7 +185,7 @@
   </div>
 
   <script>
-    // 保持你现有的地址不变
+    // ⚠️ 如果你之前成功使用的是 Vercel 的 KV (/api/data)，保持原样即可
     const API_URL = '/api/data'; 
     
     let waferData = [];
@@ -209,6 +217,7 @@
         const res = await fetch(API_URL);
         const data = await res.json();
         waferData = data || [];
+        // 按出片时间倒序
         waferData.sort((a, b) => (b.shipDate || '').localeCompare(a.shipDate || ''));
         renderTable();
       } catch (e) {
@@ -224,11 +233,11 @@
       }
 
       tbody.innerHTML = waferData.map((item, index) => {
-        let badgeClass = 'status-wait';
+        let badgeClass = 'status-default';
         if (item.status === '测试中') badgeClass = 'status-testing';
-        if (item.status === '已完成' || item.status === '完成') badgeClass = 'status-done';
+        if (['完成', '报告PPT', '分析数据excel'].includes(item.status)) badgeClass = 'status-done';
         if (item.status === 'Hold') badgeClass = 'status-hold';
-        if (item.status === '测试异常' || item.status === '异常') badgeClass = 'status-error';
+        if (item.status === '测试异常') badgeClass = 'status-error';
 
         return `
           <tr>
@@ -261,6 +270,7 @@
         testReq: document.getElementById('pie-testReq').value.trim(),
         shipDate: document.getElementById('pie-shipDate').value,
         pieName: document.getElementById('pie-name').value.trim(),
+        // 以下字段默认空值
         testerName: '', testStartDate: '', testEndDate: '', 
         status: '待测试', location: '', isCut: '', testNotes: ''
       };
@@ -291,6 +301,7 @@
     function openUpdateModal(index) {
       const item = waferData[index];
       document.getElementById('upd-id').value = index;
+      // 如果数据库里有非选项里的状态，设置给下拉框会变成空白，这里做一下容错
       document.getElementById('upd-status').value = item.status || '待测试';
       document.getElementById('upd-isCut').value = item.isCut || '';
       document.getElementById('upd-startDate').value = item.testStartDate || '';
