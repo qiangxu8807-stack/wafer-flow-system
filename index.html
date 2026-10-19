@@ -24,16 +24,17 @@
     button:hover { background: #0958d9; }
     
     .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #e8e8e8; border-radius: 8px; background: #fff; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 1900px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 2050px; /* 加宽了表格以容纳新列 */ }
     th, td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
     th { background: #fafafa; font-weight: 600; color: #333; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
     tr:hover { background: #fcfcfc; }
     
+    /* 列宽控制 */
     th:nth-child(1) { width: 100px; } th:nth-child(2) { width: 120px; } th:nth-child(3) { width: 120px; }
     th:nth-child(4) { width: 120px; } th:nth-child(5) { width: 150px; } th:nth-child(6) { width: 200px; }
     th:nth-child(7) { width: 90px; }  th:nth-child(8) { width: 200px; } th:nth-child(9) { width: 90px; }
-    th:nth-child(10) { width: 80px; } th:nth-child(11) { width: 100px; } th:nth-child(12) { width: 100px; }
-    th:nth-child(13) { width: 100px; }
+    th:nth-child(10) { width: 90px; } th:nth-child(11) { width: 80px; } th:nth-child(12) { width: 100px; }
+    th:nth-child(13) { width: 100px; } th:nth-child(14) { width: 100px; }
 
     .ship-date { color: #0958d9; font-weight: 600; background: #e6f4ff; padding: 4px 8px; border-radius: 4px; display: inline-block; }
 
@@ -101,11 +102,11 @@
           <thead>
             <tr>
               <th>出片时间</th><th>MASK</th><th>LOT</th><th>WAFER</th><th>remarks</th><th>测试内容</th>
-              <th>测试时间</th><th>测试情况</th><th>PIE负责人</th><th>是否划片</th><th>存放位置</th><th>晶圆状态</th><th>完成时间</th><th>操作</th>
+              <th>测试时间</th><th>测试情况</th><th>测试负责人</th><th>PIE负责人</th><th>是否划片</th><th>存放位置</th><th>晶圆状态</th><th>完成时间</th><th>操作</th>
             </tr>
           </thead>
           <tbody id="tester-tbody">
-            <tr><td colspan="14" style="text-align:center; color:#999;">加载中...</td></tr>
+            <tr><td colspan="15" style="text-align:center; color:#999;">加载中...</td></tr>
           </tbody>
         </table>
       </div>
@@ -117,6 +118,7 @@
       <h2>更新测试进度</h2>
       <input type="hidden" id="upd-id">
       <div class="form-grid">
+        <div class="form-group"><label>测试负责人</label><input type="text" id="upd-testerName" placeholder="您的名字"></div>
         <div class="form-group"><label>晶圆状态</label>
           <select id="upd-status">
             <option value="待测试">待测试</option><option value="待分析">待分析</option><option value="测试中">测试中</option>
@@ -171,7 +173,7 @@
     // 🌟 核心修复：请求时加上随机时间戳，击穿 JSONBin 的 CDN 缓存
     async function loadData() {
       const tbody = document.getElementById('tester-tbody');
-      tbody.innerHTML = '<tr><td colspan="14" style="text-align:center; color:#999;">加载中...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; color:#999;">加载中...</td></tr>';
       try {
         const res = await fetch(`${API_URL}/latest?_t=${Date.now()}`, { 
           headers: { 'X-Master-Key': API_KEY } 
@@ -182,14 +184,14 @@
         waferData.sort((a, b) => (b.shipDate || '').localeCompare(a.shipDate || ''));
         renderTable();
       } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="14" style="text-align:center; color:red;">加载失败: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="15" style="text-align:center; color:red;">加载失败: ${e.message}</td></tr>`;
       }
     }
 
     function renderTable() {
       const tbody = document.getElementById('tester-tbody');
       if (!waferData || waferData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="14" style="text-align:center; color:#999;">暂无流转记录</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; color:#999;">暂无流转记录</td></tr>';
         return;
       }
 
@@ -210,6 +212,7 @@
             <td><div class="note-text" title="${item.testReq || ''}">${item.testReq || '-'}</div></td>
             <td>${item.testStartDate || '-'}</td>
             <td><div class="note-text" title="${item.testNotes || ''}">${item.testNotes || '-'}</div></td>
+            <td>${item.testerName || '-'}</td>
             <td>${item.pieName || '-'}</td>
             <td>${item.isCut || '-'}</td>
             <td>${item.location || '-'}</td>
@@ -263,6 +266,7 @@
     function openUpdateModal(index) {
       const item = waferData[index];
       document.getElementById('upd-id').value = index;
+      document.getElementById('upd-testerName').value = item.testerName || '';
       document.getElementById('upd-status').value = item.status || '待测试';
       document.getElementById('upd-isCut').value = item.isCut || '';
       document.getElementById('upd-startDate').value = item.testStartDate || '';
@@ -278,6 +282,7 @@
 
     async function submitUpdate() {
       const index = document.getElementById('upd-id').value;
+      waferData[index].testerName = document.getElementById('upd-testerName').value.trim();
       waferData[index].status = document.getElementById('upd-status').value;
       waferData[index].isCut = document.getElementById('upd-isCut').value;
       waferData[index].testStartDate = document.getElementById('upd-startDate').value;
@@ -342,7 +347,7 @@
       if (!confirm("⚠️ 警告：确定要清空数据库里的所有数据吗？此操作不可逆！")) return;
       
       const tbody = document.getElementById('tester-tbody');
-      tbody.innerHTML = '<tr><td colspan="14" style="text-align:center; color:#999;">正在清空...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; color:#999;">正在清空...</td></tr>';
 
       try {
         const res = await fetch(API_URL, {
