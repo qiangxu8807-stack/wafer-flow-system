@@ -132,7 +132,7 @@
         <div class="form-group"><label>完成时间</label><input type="date" id="upd-endDate"></div>
         <div class="form-group">
           <label>存放位置</label>
-          <!-- 🌟 核心修改：把 input 换成 select -->
+          <!-- 下拉框本体 -->
           <select id="upd-location">
             <option value="">请选择存放位置</option>
           </select>
@@ -153,17 +153,19 @@
 
     let waferData = [];
 
-    // 🌟 定义存放位置的固定选项
-    const fixedLocations = [
-      "晶圆间", "楼上", "返回fab", "寄出", "交付寄出", "蓝膜寄出",
-      "D区-02架-01层", "D区-02架-02层", "D区-02架-03层",
-      "D区-01架-01层", "D区-01架-02层", "D区-01架-03层",
-      "C区-03架-01层", "C区-03架-02层", "C区-03架-03层", "C区-03架-04层", "C区-03架-05层"
-    ];
+    // 🌟 只保留这三个货架
+    const fixedLocations = [];
+    for (let i = 1; i <= 3; i++) fixedLocations.push(`D区-01架-0${i}层`);
+    for (let i = 1; i <= 3; i++) fixedLocations.push(`D区-02架-0${i}层`);
+    for (let i = 1; i <= 5; i++) fixedLocations.push(`C区-03架-0${i}层`);
 
     window.addEventListener('DOMContentLoaded', () => {
-      // 初始化下拉框
       const locSelect = document.getElementById('upd-location');
+      
+      // 🌟 核心修复：强行清空所有内容，保证没有重复选项
+      locSelect.innerHTML = '<option value="">请选择存放位置</option>';
+
+      // 重新加载干净的货架选项
       fixedLocations.forEach(loc => {
         let opt = document.createElement('option');
         opt.value = loc;
@@ -291,13 +293,13 @@
       document.getElementById('upd-startDate').value = item.testStartDate || '';
       document.getElementById('upd-endDate').value = item.testEndDate || '';
       
-      // 🌟 核心修改：兼容旧数据
+      // 兼容旧数据里的奇怪位置
       const locSelect = document.getElementById('upd-location');
-      // 如果当前记录有位置，且不在下拉列表中（说明是以前自由填的旧数据），临时添加进去
+      // 如果旧数据有位置，且不在当前列表里，临时加一个（防止旧数据丢失）
       if (item.location && !Array.from(locSelect.options).some(opt => opt.value === item.location)) {
         let newOpt = document.createElement('option');
         newOpt.value = item.location;
-        newOpt.textContent = item.location + " (历史填写)";
+        newOpt.textContent = item.location + " (历史遗留)";
         locSelect.appendChild(newOpt);
       }
       locSelect.value = item.location || '';
