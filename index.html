@@ -153,8 +153,10 @@
 
     let waferData = [];
 
-    // 🌟 只保留这三个货架
-    const fixedLocations = [];
+    // 🌟 定义存放位置的固定选项（特殊位置 + 货架）
+    const fixedLocations = [
+      "2F氮气柜", "返回fab", "FIB", "寄出"
+    ];
     for (let i = 1; i <= 3; i++) fixedLocations.push(`D区-01架-0${i}层`);
     for (let i = 1; i <= 3; i++) fixedLocations.push(`D区-02架-0${i}层`);
     for (let i = 1; i <= 5; i++) fixedLocations.push(`C区-03架-0${i}层`);
@@ -162,10 +164,10 @@
     window.addEventListener('DOMContentLoaded', () => {
       const locSelect = document.getElementById('upd-location');
       
-      // 🌟 核心修复：强行清空所有内容，保证没有重复选项
+      // 强行清空所有内容，保证没有重复选项
       locSelect.innerHTML = '<option value="">请选择存放位置</option>';
 
-      // 重新加载干净的货架选项
+      // 重新加载干净的选项
       fixedLocations.forEach(loc => {
         let opt = document.createElement('option');
         opt.value = loc;
@@ -293,9 +295,8 @@
       document.getElementById('upd-startDate').value = item.testStartDate || '';
       document.getElementById('upd-endDate').value = item.testEndDate || '';
       
-      // 兼容旧数据里的奇怪位置
+      // 兼容旧数据里的特殊位置
       const locSelect = document.getElementById('upd-location');
-      // 如果旧数据有位置，且不在当前列表里，临时加一个（防止旧数据丢失）
       if (item.location && !Array.from(locSelect.options).some(opt => opt.value === item.location)) {
         let newOpt = document.createElement('option');
         newOpt.value = item.location;
