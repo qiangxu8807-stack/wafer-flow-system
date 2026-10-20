@@ -23,27 +23,12 @@
     button { padding: 10px 20px; background: #1677ff; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
     button:hover { background: #0958d9; }
     
-    /* 🌟 核心修改：强制显示滚动条并加粗 */
-    .table-wrap { 
-      width: 100%; 
-      overflow-x: scroll !important; /* 强制显示滚动条 */
-      border: 1px solid #e8e8e8; 
-      border-radius: 8px; 
-      background: #fff; 
-      padding-bottom: 10px; /* 留出滚动条空间 */
-    }
-    /* 自定义滚动条样式（适用于Chrome/Edge） */
-    .table-wrap::-webkit-scrollbar { height: 14px; }
-    .table-wrap::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-    .table-wrap::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; border: 2px solid #f1f1f1; }
-    .table-wrap::-webkit-scrollbar-thumb:hover { background: #555; }
-
-    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 2200px; /* 强制拉宽表格 */ }
+    .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #e8e8e8; border-radius: 8px; background: #fff; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 2050px; }
     th, td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
     th { background: #fafafa; font-weight: 600; color: #333; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
     tr:hover { background: #fcfcfc; }
     
-    /* 列宽控制 */
     th:nth-child(1) { width: 100px; } th:nth-child(2) { width: 120px; } th:nth-child(3) { width: 120px; }
     th:nth-child(4) { width: 120px; } th:nth-child(5) { width: 150px; } th:nth-child(6) { width: 200px; }
     th:nth-child(7) { width: 90px; }  th:nth-child(8) { width: 200px; } th:nth-child(9) { width: 90px; }
@@ -145,7 +130,13 @@
         </div>
         <div class="form-group"><label>测试时间</label><input type="date" id="upd-startDate"></div>
         <div class="form-group"><label>完成时间</label><input type="date" id="upd-endDate"></div>
-        <div class="form-group"><label>存放位置</label><input type="text" id="upd-location"></div>
+        <div class="form-group">
+          <label>存放位置</label>
+          <!-- 🌟 核心修改：把 input 换成 select -->
+          <select id="upd-location">
+            <option value="">请选择存放位置</option>
+          </select>
+        </div>
       </div>
       <div class="form-group" style="margin-top: 16px;"><label>测试情况</label><textarea id="upd-notes"></textarea></div>
       <div class="modal-footer">
@@ -162,7 +153,24 @@
 
     let waferData = [];
 
+    // 🌟 定义存放位置的固定选项
+    const fixedLocations = [
+      "晶圆间", "楼上", "返回fab", "寄出", "交付寄出", "蓝膜寄出",
+      "D区-02架-01层", "D区-02架-02层", "D区-02架-03层",
+      "D区-01架-01层", "D区-01架-02层", "D区-01架-03层",
+      "C区-03架-01层", "C区-03架-02层", "C区-03架-03层", "C区-03架-04层", "C区-03架-05层"
+    ];
+
     window.addEventListener('DOMContentLoaded', () => {
+      // 初始化下拉框
+      const locSelect = document.getElementById('upd-location');
+      fixedLocations.forEach(loc => {
+        let opt = document.createElement('option');
+        opt.value = loc;
+        opt.textContent = loc;
+        locSelect.appendChild(opt);
+      });
+
       loadData();
       document.getElementById('pie-shipDate').valueAsDate = new Date();
     });
@@ -186,7 +194,9 @@
       const tbody = document.getElementById('tester-tbody');
       tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; color:#999;">加载中...</td></tr>';
       try {
-        const res = await fetch(`${API_URL}/latest?_t=${Date.now()}`, { headers: { 'X-Master-Key': API_KEY } });
+        const res = await fetch(`${API_URL}/latest?_t=${Date.now()}`, { 
+          headers: { 'X-Master-Key': API_KEY } 
+        });
         if (!res.ok) throw new Error(`获取数据失败: ${res.status}`);
         const json = await res.json();
         waferData = Array.isArray(json.record) ? json.record : [];
@@ -280,7 +290,18 @@
       document.getElementById('upd-isCut').value = item.isCut || '';
       document.getElementById('upd-startDate').value = item.testStartDate || '';
       document.getElementById('upd-endDate').value = item.testEndDate || '';
-      document.getElementById('upd-location').value = item.location || '';
+      
+      // 🌟 核心修改：兼容旧数据
+      const locSelect = document.getElementById('upd-location');
+      // 如果当前记录有位置，且不在下拉列表中（说明是以前自由填的旧数据），临时添加进去
+      if (item.location && !Array.from(locSelect.options).some(opt => opt.value === item.location)) {
+        let newOpt = document.createElement('option');
+        newOpt.value = item.location;
+        newOpt.textContent = item.location + " (历史填写)";
+        locSelect.appendChild(newOpt);
+      }
+      locSelect.value = item.location || '';
+
       document.getElementById('upd-notes').value = item.testNotes || '';
       document.getElementById('updateModal').style.display = 'flex';
     }
@@ -296,7 +317,7 @@
       waferData[index].isCut = document.getElementById('upd-isCut').value;
       waferData[index].testStartDate = document.getElementById('upd-startDate').value;
       waferData[index].testEndDate = document.getElementById('upd-endDate').value;
-      waferData[index].location = document.getElementById('upd-location').value.trim();
+      waferData[index].location = document.getElementById('upd-location').value;
       waferData[index].testNotes = document.getElementById('upd-notes').value.trim();
 
       try {
