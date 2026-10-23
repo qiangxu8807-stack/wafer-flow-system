@@ -23,12 +23,20 @@
     button { padding: 10px 20px; background: #1677ff; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
     button:hover { background: #0958d9; }
     
+    /* 🌟 新增：搜索框样式 */
+    .search-bar { margin-bottom: 16px; display: flex; gap: 10px; align-items: center; }
+    .search-bar input { flex: 1; padding: 12px 16px; border: 2px solid #e8e8e8; border-radius: 8px; font-size: 15px; transition: border 0.2s; }
+    .search-bar input:focus { border-color: #1677ff; }
+    .search-bar button { background: #fff; color: #555; border: 1px solid #d9d9d9; padding: 12px 20px; }
+    .search-bar button:hover { background: #f5f5f5; }
+
     .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #e8e8e8; border-radius: 8px; background: #fff; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 2050px; }
     th, td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
     th { background: #fafafa; font-weight: 600; color: #333; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
     tr:hover { background: #fcfcfc; }
     
+    /* 列宽控制 */
     th:nth-child(1) { width: 100px; } th:nth-child(2) { width: 120px; } th:nth-child(3) { width: 120px; }
     th:nth-child(4) { width: 120px; } th:nth-child(5) { width: 150px; } th:nth-child(6) { width: 200px; }
     th:nth-child(7) { width: 90px; }  th:nth-child(8) { width: 200px; } th:nth-child(9) { width: 90px; }
@@ -96,6 +104,12 @@
     </div>
 
     <div id="tab-tester" class="content">
+      <!-- 🌟 新增：搜索栏 -->
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="🔍 搜索 MASK、LOT、WAFER、负责人或备注（例如输入 SMP032）..." oninput="handleSearch()">
+        <button onclick="clearSearch()">清空</button>
+      </div>
+
       <div class="table-wrap">
         <table>
           <thead>
@@ -132,7 +146,6 @@
         <div class="form-group"><label>完成时间</label><input type="date" id="upd-endDate"></div>
         <div class="form-group">
           <label>存放位置</label>
-          <!-- 下拉框本体 -->
           <select id="upd-location">
             <option value="">请选择存放位置</option>
           </select>
@@ -151,9 +164,10 @@
     const API_KEY = '$2a$10$DFsL4uEFjACFW.3AKrAnU.xuCaLQjhilb0ni.TZTOkB7lEpvGApQi';
     const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-    let waferData = [];
+    let waferData = []; // 原始数据
+    let currentSearch = ''; // 搜索关键字
 
-    // 🌟 定义存放位置的固定选项（特殊位置 + 货架）
+    // 定义存放位置的固定选项
     const fixedLocations = [
       "2F氮气柜", "返回fab", "FIB", "寄出"
     ];
@@ -163,11 +177,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       const locSelect = document.getElementById('upd-location');
-      
-      // 强行清空所有内容，保证没有重复选项
       locSelect.innerHTML = '<option value="">请选择存放位置</option>';
-
-      // 重新加载干净的选项
       fixedLocations.forEach(loc => {
         let opt = document.createElement('option');
         opt.value = loc;
@@ -204,11 +214,24 @@
         if (!res.ok) throw new Error(`获取数据失败: ${res.status}`);
         const json = await res.json();
         waferData = Array.isArray(json.record) ? json.record : [];
+        // 排序逻辑
         waferData.sort((a, b) => (b.shipDate || '').localeCompare(a.shipDate || ''));
         renderTable();
       } catch (e) {
         tbody.innerHTML = `<tr><td colspan="15" style="text-align:center; color:red;">加载失败: ${e.message}</td></tr>`;
       }
+    }
+
+    // 🌟 核心新增：处理搜索逻辑
+    function handleSearch() {
+      currentSearch = document.getElementById('searchInput').value.toLowerCase().trim();
+      renderTable();
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      currentSearch = '';
+      renderTable();
     }
 
     function renderTable() {
@@ -218,7 +241,32 @@
         return;
       }
 
-      tbody.innerHTML = waferData.map((item, index) => {
+      // 🌟 核心新增：多字段匹配过滤
+      let dataToRender = waferData;
+      if (currentSearch) {
+        dataToRender = waferData.filter(item => {
+          const matchMask = (item.mask || '').toLowerCase().includes(currentSearch);
+          const matchLot = (item.lot || '').toLowerCase().includes(currentSearch);
+          const matchWafer = (item.wafer || '').toLowerCase().includes(currentSearch);
+          const matchRemarks = (item.remarks || '').toLowerCase().includes(currentSearch);
+          const matchTestReq = (item.testReq || '').toLowerCase().includes(currentSearch);
+          const matchTester = (item.testerName || '').toLowerCase().includes(currentSearch);
+          const matchPie = (item.pieName || '').toLowerCase().includes(currentSearch);
+          const matchNotes = (item.testNotes || '').toLowerCase().includes(currentSearch);
+          
+          return matchMask || matchLot || matchWafer || matchRemarks || matchTestReq || matchTester || matchPie || matchNotes;
+        });
+      }
+
+      if (dataToRender.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; color:#999;">没有找到匹配的记录</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = dataToRender.map((item) => {
+        // 获取原始数据的索引，防止搜索后操作错位
+        const originalIndex = waferData.indexOf(item);
+
         let badgeClass = 'status-default';
         if (item.status === '测试中') badgeClass = 'status-testing';
         if (['完成', '报告PPT', '分析数据excel'].includes(item.status)) badgeClass = 'status-done';
@@ -241,7 +289,7 @@
             <td>${item.location || '-'}</td>
             <td><span class="badge ${badgeClass}">${item.status || '待测试'}</span></td>
             <td>${item.testEndDate || '-'}</td>
-            <td><button class="btn-edit" onclick="openUpdateModal(${index})">更新</button></td>
+            <td><button class="btn-edit" onclick="openUpdateModal(${originalIndex})">更新</button></td>
           </tr>
         `;
       }).join('');
@@ -286,17 +334,22 @@
       }
     }
 
-    function openUpdateModal(index) {
-      const item = waferData[index];
-      document.getElementById('upd-id').value = index;
+    function openUpdateModal(originalIndex) {
+      const item = waferData[originalIndex];
+      document.getElementById('upd-id').value = originalIndex;
       document.getElementById('upd-testerName').value = item.testerName || '';
       document.getElementById('upd-status').value = item.status || '待测试';
       document.getElementById('upd-isCut').value = item.isCut || '';
       document.getElementById('upd-startDate').value = item.testStartDate || '';
       document.getElementById('upd-endDate').value = item.testEndDate || '';
       
-      // 兼容旧数据里的特殊位置
       const locSelect = document.getElementById('upd-location');
+      // 清理上一次可能遗留的“历史遗留”选项
+      Array.from(locSelect.options).forEach(opt => {
+         if (opt.value !== "" && !fixedLocations.includes(opt.value)) {
+             opt.remove();
+         }
+      });
       if (item.location && !Array.from(locSelect.options).some(opt => opt.value === item.location)) {
         let newOpt = document.createElement('option');
         newOpt.value = item.location;
@@ -333,7 +386,7 @@
         
         closeModal();
         showMsg('更新成功', 'success');
-        loadData();
+        loadData(); // 重新加载数据会重置搜索，如果你想保留搜索状态，可以改成 renderTable()
       } catch (e) {
         alert(e.message);
       }
@@ -388,9 +441,7 @@
           body: '[]'
         });
         
-        if (!res.ok) {
-           throw new Error(`清空失败，状态码: ${res.status}。请检查 Key 权限。`);
-        }
+        if (!res.ok) throw new Error(`清空失败，状态码: ${res.status}。请检查 Key 权限。`);
 
         showMsg('云端数据已清空', 'success');
         waferData = []; 
