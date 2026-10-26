@@ -23,27 +23,24 @@
     button { padding: 10px 20px; background: #1677ff; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
     button:hover { background: #0958d9; }
     
-    /* 🌟 新增：搜索框样式 */
-    .search-bar { margin-bottom: 16px; display: flex; gap: 10px; align-items: center; }
-    .search-bar input { flex: 1; padding: 12px 16px; border: 2px solid #e8e8e8; border-radius: 8px; font-size: 15px; transition: border 0.2s; }
-    .search-bar input:focus { border-color: #1677ff; }
-    .search-bar button { background: #fff; color: #555; border: 1px solid #d9d9d9; padding: 12px 20px; }
-    .search-bar button:hover { background: #f5f5f5; }
-
     .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #e8e8e8; border-radius: 8px; background: #fff; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 2050px; }
+    /* 增加表格最小宽度以容纳新增的两列 */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 2200px; }
     th, td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
     th { background: #fafafa; font-weight: 600; color: #333; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
     tr:hover { background: #fcfcfc; }
     
-    /* 列宽控制 */
+    /* 列宽控制调整 */
     th:nth-child(1) { width: 100px; } th:nth-child(2) { width: 120px; } th:nth-child(3) { width: 120px; }
-    th:nth-child(4) { width: 120px; } th:nth-child(5) { width: 150px; } th:nth-child(6) { width: 200px; }
-    th:nth-child(7) { width: 90px; }  th:nth-child(8) { width: 200px; } th:nth-child(9) { width: 90px; }
+    th:nth-child(4) { width: 120px; } th:nth-child(5) { width: 150px; } th:nth-child(6) { width: 150px; } /* 调整 */
+    th:nth-child(7) { width: 90px; }  th:nth-child(8) { width: 180px; } th:nth-child(9) { width: 90px; }
     th:nth-child(10) { width: 90px; } th:nth-child(11) { width: 80px; } th:nth-child(12) { width: 100px; }
-    th:nth-child(13) { width: 100px; } th:nth-child(14) { width: 100px; }
+    th:nth-child(13) { width: 90px; } th:nth-child(14) { width: 80px; } th:nth-child(15) { width: 80px; }
+    th:nth-child(16) { width: 100px; }
 
     .ship-date { color: #0958d9; font-weight: 600; background: #e6f4ff; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+    .link-btn { color: #1677ff; text-decoration: none; font-weight: bold; display: inline-block; padding: 2px 6px; border: 1px solid #1677ff; border-radius: 4px; font-size: 12px; background: #e6f4ff; transition: all 0.2s; }
+    .link-btn:hover { background: #1677ff; color: #fff; }
 
     .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; white-space: nowrap; }
     .status-default { background: #fffbe6; color: #d48806; border: 1px solid #ffe58f; }
@@ -97,6 +94,8 @@
       <div class="form-grid" style="grid-template-columns: 1fr;">
         <div class="form-group"><label>remarks <span>*</span></label><input type="text" id="pie-remarks"></div>
         <div class="form-group"><label>测试内容 <span>*</span></label><textarea id="pie-testReq"></textarea></div>
+        <!-- 🌟 新增：PIE 报告链接 -->
+        <div class="form-group"><label>LOT 报告链接（选填，如飞书/公司内网盘链接）</label><input type="text" id="pie-report" placeholder="粘贴包含 http 的链接即可"></div>
       </div>
       <div style="text-align: right; margin-top: 10px;">
         <button onclick="submitPIE()">提交发货登记</button>
@@ -104,22 +103,21 @@
     </div>
 
     <div id="tab-tester" class="content">
-      <!-- 🌟 新增：搜索栏 -->
-      <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="🔍 搜索 MASK、LOT、WAFER、负责人或备注（例如输入 SMP032）..." oninput="handleSearch()">
-        <button onclick="clearSearch()">清空</button>
-      </div>
-
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>出片时间</th><th>MASK</th><th>LOT</th><th>WAFER</th><th>remarks</th><th>测试内容</th>
-              <th>测试时间</th><th>测试情况</th><th>测试负责人</th><th>PIE负责人</th><th>是否划片</th><th>存放位置</th><th>晶圆状态</th><th>完成时间</th><th>操作</th>
+              <!-- 🌟 新增：LOT报告列 -->
+              <th>LOT报告</th>
+              <th>测试时间</th><th>测试情况</th><th>测试负责人</th><th>PIE负责人</th><th>是否划片</th><th>存放位置</th><th>晶圆状态</th><th>完成时间</th>
+              <!-- 🌟 新增：测试报告列 -->
+              <th>测试报告</th>
+              <th>操作</th>
             </tr>
           </thead>
           <tbody id="tester-tbody">
-            <tr><td colspan="15" style="text-align:center; color:#999;">加载中...</td></tr>
+            <tr><td colspan="17" style="text-align:center; color:#999;">加载中...</td></tr>
           </tbody>
         </table>
       </div>
@@ -152,6 +150,8 @@
         </div>
       </div>
       <div class="form-group" style="margin-top: 16px;"><label>测试情况</label><textarea id="upd-notes"></textarea></div>
+      <!-- 🌟 新增：测试报告链接 -->
+      <div class="form-group" style="margin-top: 16px;"><label>测试报告链接（选填，如测试数据PDF/PPT）</label><input type="text" id="upd-testerReport" placeholder="粘贴包含 http 的链接即可"></div>
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeModal()">取消</button>
         <button onclick="submitUpdate()">保存更新</button>
@@ -164,10 +164,9 @@
     const API_KEY = '$2a$10$DFsL4uEFjACFW.3AKrAnU.xuCaLQjhilb0ni.TZTOkB7lEpvGApQi';
     const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-    let waferData = []; // 原始数据
-    let currentSearch = ''; // 搜索关键字
+    let waferData = [];
 
-    // 定义存放位置的固定选项
+    // 定义存放位置的固定选项（特殊位置 + 货架）
     const fixedLocations = [
       "2F氮气柜", "返回fab", "FIB", "寄出"
     ];
@@ -206,7 +205,7 @@
 
     async function loadData() {
       const tbody = document.getElementById('tester-tbody');
-      tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; color:#999;">加载中...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="17" style="text-align:center; color:#999;">加载中...</td></tr>';
       try {
         const res = await fetch(`${API_URL}/latest?_t=${Date.now()}`, { 
           headers: { 'X-Master-Key': API_KEY } 
@@ -214,64 +213,32 @@
         if (!res.ok) throw new Error(`获取数据失败: ${res.status}`);
         const json = await res.json();
         waferData = Array.isArray(json.record) ? json.record : [];
-        // 排序逻辑
         waferData.sort((a, b) => (b.shipDate || '').localeCompare(a.shipDate || ''));
         renderTable();
       } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="15" style="text-align:center; color:red;">加载失败: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="17" style="text-align:center; color:red;">加载失败: ${e.message}</td></tr>`;
       }
-    }
-
-    // 🌟 核心新增：处理搜索逻辑
-    function handleSearch() {
-      currentSearch = document.getElementById('searchInput').value.toLowerCase().trim();
-      renderTable();
-    }
-
-    function clearSearch() {
-      document.getElementById('searchInput').value = '';
-      currentSearch = '';
-      renderTable();
     }
 
     function renderTable() {
       const tbody = document.getElementById('tester-tbody');
       if (!waferData || waferData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; color:#999;">暂无流转记录</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="17" style="text-align:center; color:#999;">暂无流转记录</td></tr>';
         return;
       }
 
-      // 🌟 核心新增：多字段匹配过滤
-      let dataToRender = waferData;
-      if (currentSearch) {
-        dataToRender = waferData.filter(item => {
-          const matchMask = (item.mask || '').toLowerCase().includes(currentSearch);
-          const matchLot = (item.lot || '').toLowerCase().includes(currentSearch);
-          const matchWafer = (item.wafer || '').toLowerCase().includes(currentSearch);
-          const matchRemarks = (item.remarks || '').toLowerCase().includes(currentSearch);
-          const matchTestReq = (item.testReq || '').toLowerCase().includes(currentSearch);
-          const matchTester = (item.testerName || '').toLowerCase().includes(currentSearch);
-          const matchPie = (item.pieName || '').toLowerCase().includes(currentSearch);
-          const matchNotes = (item.testNotes || '').toLowerCase().includes(currentSearch);
-          
-          return matchMask || matchLot || matchWafer || matchRemarks || matchTestReq || matchTester || matchPie || matchNotes;
-        });
-      }
-
-      if (dataToRender.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; color:#999;">没有找到匹配的记录</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = dataToRender.map((item) => {
-        // 获取原始数据的索引，防止搜索后操作错位
-        const originalIndex = waferData.indexOf(item);
-
+      tbody.innerHTML = waferData.map((item, index) => {
         let badgeClass = 'status-default';
         if (item.status === '测试中') badgeClass = 'status-testing';
         if (['完成', '报告PPT', '分析数据excel'].includes(item.status)) badgeClass = 'status-done';
         if (item.status === 'Hold') badgeClass = 'status-hold';
         if (item.status === '测试异常') badgeClass = 'status-error';
+
+        // 🌟 渲染链接：如果有链接，显示为蓝色按钮；如果没有，显示 -
+        const pieReportHtml = item.pieReport && item.pieReport.startsWith('http') 
+          ? `<a href="${item.pieReport}" target="_blank" class="link-btn">📄 查看</a>` : '-';
+        const testerReportHtml = item.testerReport && item.testerReport.startsWith('http') 
+          ? `<a href="${item.testerReport}" target="_blank" class="link-btn">📄 查看</a>` : '-';
 
         return `
           <tr>
@@ -281,6 +248,7 @@
             <td>${item.wafer || '-'}</td>
             <td><div class="note-text" title="${item.remarks || ''}">${item.remarks || '-'}</div></td>
             <td><div class="note-text" title="${item.testReq || ''}">${item.testReq || '-'}</div></td>
+            <td>${pieReportHtml}</td> <!-- LOT报告 -->
             <td>${item.testStartDate || '-'}</td>
             <td><div class="note-text" title="${item.testNotes || ''}">${item.testNotes || '-'}</div></td>
             <td>${item.testerName || '-'}</td>
@@ -289,7 +257,8 @@
             <td>${item.location || '-'}</td>
             <td><span class="badge ${badgeClass}">${item.status || '待测试'}</span></td>
             <td>${item.testEndDate || '-'}</td>
-            <td><button class="btn-edit" onclick="openUpdateModal(${originalIndex})">更新</button></td>
+            <td>${testerReportHtml}</td> <!-- 测试报告 -->
+            <td><button class="btn-edit" onclick="openUpdateModal(${index})">更新</button></td>
           </tr>
         `;
       }).join('');
@@ -305,6 +274,8 @@
         testReq: document.getElementById('pie-testReq').value.trim(),
         shipDate: document.getElementById('pie-shipDate').value,
         pieName: document.getElementById('pie-name').value.trim(),
+        pieReport: document.getElementById('pie-report').value.trim(), // 🌟 新增保存 LOT 报告链接
+        testerReport: '', // 初始为空
         testerName: '', testStartDate: '', testEndDate: '', status: '待测试', location: '', isCut: '', testNotes: ''
       };
 
@@ -327,24 +298,25 @@
         if (!putRes.ok) throw new Error(`提交失败: ${putRes.status}`);
 
         showMsg('提交成功', 'success');
-        ['pie-mask', 'pie-lot', 'pie-wafer', 'pie-remarks', 'pie-testReq'].forEach(id => document.getElementById(id).value = '');
+        ['pie-mask', 'pie-lot', 'pie-wafer', 'pie-remarks', 'pie-testReq', 'pie-report'].forEach(id => document.getElementById(id).value = '');
         switchTab('tester');
       } catch (e) {
         showMsg(e.message, 'error');
       }
     }
 
-    function openUpdateModal(originalIndex) {
-      const item = waferData[originalIndex];
-      document.getElementById('upd-id').value = originalIndex;
+    function openUpdateModal(index) {
+      const item = waferData[index];
+      document.getElementById('upd-id').value = index;
       document.getElementById('upd-testerName').value = item.testerName || '';
       document.getElementById('upd-status').value = item.status || '待测试';
       document.getElementById('upd-isCut').value = item.isCut || '';
       document.getElementById('upd-startDate').value = item.testStartDate || '';
       document.getElementById('upd-endDate').value = item.testEndDate || '';
+      document.getElementById('upd-testerReport').value = item.testerReport || ''; // 🌟 回显测试报告
       
       const locSelect = document.getElementById('upd-location');
-      // 清理上一次可能遗留的“历史遗留”选项
+      // 清理历史遗留选项
       Array.from(locSelect.options).forEach(opt => {
          if (opt.value !== "" && !fixedLocations.includes(opt.value)) {
              opt.remove();
@@ -375,6 +347,7 @@
       waferData[index].testEndDate = document.getElementById('upd-endDate').value;
       waferData[index].location = document.getElementById('upd-location').value;
       waferData[index].testNotes = document.getElementById('upd-notes').value.trim();
+      waferData[index].testerReport = document.getElementById('upd-testerReport').value.trim(); // 🌟 保存测试报告
 
       try {
         const res = await fetch(API_URL, {
@@ -386,7 +359,7 @@
         
         closeModal();
         showMsg('更新成功', 'success');
-        loadData(); // 重新加载数据会重置搜索，如果你想保留搜索状态，可以改成 renderTable()
+        loadData();
       } catch (e) {
         alert(e.message);
       }
@@ -432,7 +405,7 @@
       if (!confirm("⚠️ 警告：确定要清空数据库里的所有数据吗？此操作不可逆！")) return;
       
       const tbody = document.getElementById('tester-tbody');
-      tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; color:#999;">正在清空...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="17" style="text-align:center; color:#999;">正在清空...</td></tr>';
 
       try {
         const res = await fetch(API_URL, {
