@@ -24,19 +24,17 @@
     button:hover { background: #0958d9; }
     
     .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #e8e8e8; border-radius: 8px; background: #fff; }
-    /* 增加表格最小宽度以容纳新增的两列 */
     table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 2200px; }
     th, td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
     th { background: #fafafa; font-weight: 600; color: #333; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
     tr:hover { background: #fcfcfc; }
     
-    /* 列宽控制调整 */
     th:nth-child(1) { width: 100px; } th:nth-child(2) { width: 120px; } th:nth-child(3) { width: 120px; }
-    th:nth-child(4) { width: 120px; } th:nth-child(5) { width: 150px; } th:nth-child(6) { width: 150px; } /* 调整 */
+    th:nth-child(4) { width: 120px; } th:nth-child(5) { width: 150px; } th:nth-child(6) { width: 150px; }
     th:nth-child(7) { width: 90px; }  th:nth-child(8) { width: 180px; } th:nth-child(9) { width: 90px; }
     th:nth-child(10) { width: 90px; } th:nth-child(11) { width: 80px; } th:nth-child(12) { width: 100px; }
     th:nth-child(13) { width: 90px; } th:nth-child(14) { width: 80px; } th:nth-child(15) { width: 80px; }
-    th:nth-child(16) { width: 100px; }
+    th:nth-child(16) { width: 100px; } th:nth-child(17) { width: 150px; } /* 加宽操作列 */
 
     .ship-date { color: #0958d9; font-weight: 600; background: #e6f4ff; padding: 4px 8px; border-radius: 4px; display: inline-block; }
     .link-btn { color: #1677ff; text-decoration: none; font-weight: bold; display: inline-block; padding: 2px 6px; border: 1px solid #1677ff; border-radius: 4px; font-size: 12px; background: #e6f4ff; transition: all 0.2s; }
@@ -49,7 +47,10 @@
     .status-hold { background: #fff0f6; color: #c41d7f; border: 1px solid #ffadd2; }
     .status-error { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; }
     
-    .btn-edit { padding: 4px 10px; font-size: 12px; background: #fff; color: #1677ff; border: 1px solid #1677ff; border-radius: 4px; cursor: pointer; white-space: nowrap; }
+    .btn-edit { padding: 4px 8px; font-size: 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-right: 4px; }
+    .btn-tester { background: #fff; color: #1677ff; border: 1px solid #1677ff; }
+    .btn-pie { background: #fff; color: #fa8c16; border: 1px solid #fa8c16; } /* 修改PIE信息的按钮颜色 */
+    
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
     .modal-content { background: #fff; padding: 24px; border-radius: 8px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; }
     .modal h2 { margin-top: 0; font-size: 18px; margin-bottom: 16px; }
@@ -94,8 +95,7 @@
       <div class="form-grid" style="grid-template-columns: 1fr;">
         <div class="form-group"><label>remarks <span>*</span></label><input type="text" id="pie-remarks"></div>
         <div class="form-group"><label>测试内容 <span>*</span></label><textarea id="pie-testReq"></textarea></div>
-        <!-- 🌟 新增：PIE 报告链接 -->
-        <div class="form-group"><label>LOT 报告链接（选填，如飞书/公司内网盘链接）</label><input type="text" id="pie-report" placeholder="粘贴包含 http 的链接即可"></div>
+        <div class="form-group"><label>LOT 报告链接（选填）</label><input type="text" id="pie-report" placeholder="粘贴包含 http 的链接即可"></div>
       </div>
       <div style="text-align: right; margin-top: 10px;">
         <button onclick="submitPIE()">提交发货登记</button>
@@ -108,10 +108,8 @@
           <thead>
             <tr>
               <th>出片时间</th><th>MASK</th><th>LOT</th><th>WAFER</th><th>remarks</th><th>测试内容</th>
-              <!-- 🌟 新增：LOT报告列 -->
               <th>LOT报告</th>
               <th>测试时间</th><th>测试情况</th><th>测试负责人</th><th>PIE负责人</th><th>是否划片</th><th>存放位置</th><th>晶圆状态</th><th>完成时间</th>
-              <!-- 🌟 新增：测试报告列 -->
               <th>测试报告</th>
               <th>操作</th>
             </tr>
@@ -124,6 +122,7 @@
     </div>
   </div>
 
+  <!-- 🌟 弹窗1：Tester 更新测试进度 -->
   <div class="modal" id="updateModal">
     <div class="modal-content">
       <h2>更新测试进度</h2>
@@ -150,11 +149,34 @@
         </div>
       </div>
       <div class="form-group" style="margin-top: 16px;"><label>测试情况</label><textarea id="upd-notes"></textarea></div>
-      <!-- 🌟 新增：测试报告链接 -->
-      <div class="form-group" style="margin-top: 16px;"><label>测试报告链接（选填，如测试数据PDF/PPT）</label><input type="text" id="upd-testerReport" placeholder="粘贴包含 http 的链接即可"></div>
+      <div class="form-group" style="margin-top: 16px;"><label>测试报告链接（选填）</label><input type="text" id="upd-testerReport" placeholder="粘贴包含 http 的链接即可"></div>
       <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeModal()">取消</button>
+        <button class="btn-cancel" onclick="closeModal('updateModal')">取消</button>
         <button onclick="submitUpdate()">保存更新</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🌟 弹窗2：PIE 修改填写错误的信息 -->
+  <div class="modal" id="pieEditModal">
+    <div class="modal-content">
+      <h2>修改登记信息 (PIE)</h2>
+      <input type="hidden" id="edit-pie-id">
+      <div class="form-grid">
+        <div class="form-group"><label>MASK <span>*</span></label><input type="text" id="edit-pie-mask"></div>
+        <div class="form-group"><label>LOT <span>*</span></label><input type="text" id="edit-pie-lot"></div>
+        <div class="form-group"><label>WAFER <span>*</span></label><input type="text" id="edit-pie-wafer"></div>
+        <div class="form-group"><label>出片时间 <span>*</span></label><input type="date" id="edit-pie-shipDate"></div>
+        <div class="form-group"><label>PIE负责人 <span>*</span></label><input type="text" id="edit-pie-name"></div>
+      </div>
+      <div class="form-grid" style="grid-template-columns: 1fr;">
+        <div class="form-group"><label>remarks <span>*</span></label><input type="text" id="edit-pie-remarks"></div>
+        <div class="form-group"><label>测试内容 <span>*</span></label><textarea id="edit-pie-testReq"></textarea></div>
+        <div class="form-group"><label>LOT 报告链接（选填）</label><input type="text" id="edit-pie-report"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal('pieEditModal')">取消</button>
+        <button onclick="submitPieEdit()" style="background: #fa8c16;">保存修改</button>
       </div>
     </div>
   </div>
@@ -166,7 +188,7 @@
 
     let waferData = [];
 
-    // 定义存放位置的固定选项（特殊位置 + 货架）
+    // 定义存放位置的固定选项
     const fixedLocations = [
       "2F氮气柜", "返回fab", "FIB", "寄出"
     ];
@@ -234,7 +256,6 @@
         if (item.status === 'Hold') badgeClass = 'status-hold';
         if (item.status === '测试异常') badgeClass = 'status-error';
 
-        // 🌟 渲染链接：如果有链接，显示为蓝色按钮；如果没有，显示 -
         const pieReportHtml = item.pieReport && item.pieReport.startsWith('http') 
           ? `<a href="${item.pieReport}" target="_blank" class="link-btn">📄 查看</a>` : '-';
         const testerReportHtml = item.testerReport && item.testerReport.startsWith('http') 
@@ -248,7 +269,7 @@
             <td>${item.wafer || '-'}</td>
             <td><div class="note-text" title="${item.remarks || ''}">${item.remarks || '-'}</div></td>
             <td><div class="note-text" title="${item.testReq || ''}">${item.testReq || '-'}</div></td>
-            <td>${pieReportHtml}</td> <!-- LOT报告 -->
+            <td>${pieReportHtml}</td>
             <td>${item.testStartDate || '-'}</td>
             <td><div class="note-text" title="${item.testNotes || ''}">${item.testNotes || '-'}</div></td>
             <td>${item.testerName || '-'}</td>
@@ -257,8 +278,12 @@
             <td>${item.location || '-'}</td>
             <td><span class="badge ${badgeClass}">${item.status || '待测试'}</span></td>
             <td>${item.testEndDate || '-'}</td>
-            <td>${testerReportHtml}</td> <!-- 测试报告 -->
-            <td><button class="btn-edit" onclick="openUpdateModal(${index})">更新</button></td>
+            <td>${testerReportHtml}</td>
+            <td>
+              <!-- 🌟 新增两个操作按钮，分离职责 -->
+              <button class="btn-edit btn-tester" onclick="openUpdateModal(${index})">测试更新</button>
+              <button class="btn-edit btn-pie" onclick="openPieEditModal(${index})">改PIE信息</button>
+            </td>
           </tr>
         `;
       }).join('');
@@ -274,9 +299,8 @@
         testReq: document.getElementById('pie-testReq').value.trim(),
         shipDate: document.getElementById('pie-shipDate').value,
         pieName: document.getElementById('pie-name').value.trim(),
-        pieReport: document.getElementById('pie-report').value.trim(), // 🌟 新增保存 LOT 报告链接
-        testerReport: '', // 初始为空
-        testerName: '', testStartDate: '', testEndDate: '', status: '待测试', location: '', isCut: '', testNotes: ''
+        pieReport: document.getElementById('pie-report').value.trim(),
+        testerReport: '', testerName: '', testStartDate: '', testEndDate: '', status: '待测试', location: '', isCut: '', testNotes: ''
       };
 
       if (!newRecord.mask || !newRecord.lot || !newRecord.wafer || !newRecord.shipDate || !newRecord.pieName || !newRecord.remarks || !newRecord.testReq) {
@@ -305,6 +329,9 @@
       }
     }
 
+    // ==========================================
+    // 逻辑1：打开/保存 Tester 更新弹窗
+    // ==========================================
     function openUpdateModal(index) {
       const item = waferData[index];
       document.getElementById('upd-id').value = index;
@@ -313,29 +340,21 @@
       document.getElementById('upd-isCut').value = item.isCut || '';
       document.getElementById('upd-startDate').value = item.testStartDate || '';
       document.getElementById('upd-endDate').value = item.testEndDate || '';
-      document.getElementById('upd-testerReport').value = item.testerReport || ''; // 🌟 回显测试报告
+      document.getElementById('upd-testerReport').value = item.testerReport || '';
       
       const locSelect = document.getElementById('upd-location');
-      // 清理历史遗留选项
       Array.from(locSelect.options).forEach(opt => {
-         if (opt.value !== "" && !fixedLocations.includes(opt.value)) {
-             opt.remove();
-         }
+         if (opt.value !== "" && !fixedLocations.includes(opt.value)) opt.remove();
       });
       if (item.location && !Array.from(locSelect.options).some(opt => opt.value === item.location)) {
         let newOpt = document.createElement('option');
-        newOpt.value = item.location;
-        newOpt.textContent = item.location + " (历史遗留)";
+        newOpt.value = item.location; newOpt.textContent = item.location + " (历史)";
         locSelect.appendChild(newOpt);
       }
       locSelect.value = item.location || '';
 
       document.getElementById('upd-notes').value = item.testNotes || '';
       document.getElementById('updateModal').style.display = 'flex';
-    }
-
-    function closeModal() {
-      document.getElementById('updateModal').style.display = 'none';
     }
 
     async function submitUpdate() {
@@ -347,7 +366,7 @@
       waferData[index].testEndDate = document.getElementById('upd-endDate').value;
       waferData[index].location = document.getElementById('upd-location').value;
       waferData[index].testNotes = document.getElementById('upd-notes').value.trim();
-      waferData[index].testerReport = document.getElementById('upd-testerReport').value.trim(); // 🌟 保存测试报告
+      waferData[index].testerReport = document.getElementById('upd-testerReport').value.trim();
 
       try {
         const res = await fetch(API_URL, {
@@ -357,12 +376,76 @@
         });
         if (!res.ok) throw new Error(`更新失败: ${res.status}`);
         
-        closeModal();
-        showMsg('更新成功', 'success');
+        closeModal('updateModal');
+        showMsg('测试进度更新成功', 'success');
         loadData();
       } catch (e) {
         alert(e.message);
       }
+    }
+
+    // ==========================================
+    // 逻辑2：打开/保存 PIE 修改弹窗
+    // ==========================================
+    function openPieEditModal(index) {
+      const item = waferData[index];
+      document.getElementById('edit-pie-id').value = index;
+      document.getElementById('edit-pie-mask').value = item.mask || '';
+      document.getElementById('edit-pie-lot').value = item.lot || '';
+      document.getElementById('edit-pie-wafer').value = item.wafer || '';
+      document.getElementById('edit-pie-shipDate').value = item.shipDate || '';
+      document.getElementById('edit-pie-name').value = item.pieName || '';
+      document.getElementById('edit-pie-remarks').value = item.remarks || '';
+      document.getElementById('edit-pie-testReq').value = item.testReq || '';
+      document.getElementById('edit-pie-report').value = item.pieReport || '';
+      document.getElementById('pieEditModal').style.display = 'flex';
+    }
+
+    async function submitPieEdit() {
+      const index = document.getElementById('edit-pie-id').value;
+      
+      // 验证必填项
+      const mask = document.getElementById('edit-pie-mask').value.trim();
+      const lot = document.getElementById('edit-pie-lot').value.trim();
+      const wafer = document.getElementById('edit-pie-wafer').value.trim();
+      const shipDate = document.getElementById('edit-pie-shipDate').value;
+      const pieName = document.getElementById('edit-pie-name').value.trim();
+      const remarks = document.getElementById('edit-pie-remarks').value.trim();
+      const testReq = document.getElementById('edit-pie-testReq').value.trim();
+
+      if (!mask || !lot || !wafer || !shipDate || !pieName || !remarks || !testReq) {
+        alert("请填写所有带 * 的必填项！");
+        return;
+      }
+
+      // 更新内存中的数据
+      waferData[index].mask = mask;
+      waferData[index].lot = lot;
+      waferData[index].wafer = wafer;
+      waferData[index].shipDate = shipDate;
+      waferData[index].pieName = pieName;
+      waferData[index].remarks = remarks;
+      waferData[index].testReq = testReq;
+      waferData[index].pieReport = document.getElementById('edit-pie-report').value.trim();
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+          body: JSON.stringify(waferData)
+        });
+        if (!res.ok) throw new Error(`修改失败: ${res.status}`);
+        
+        closeModal('pieEditModal');
+        showMsg('登记信息修改成功', 'success');
+        loadData();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
     }
 
     async function handleBatchImport(event) {
