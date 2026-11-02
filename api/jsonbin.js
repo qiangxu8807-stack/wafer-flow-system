@@ -23,7 +23,7 @@ export default async function handler(req, res) {
       headers: {
         'Content-Type': 'application/json',
         // ⚠️ 注意：如果你在 JSONBin 申请的是 Access Key，请把下面这行的 'X-Master-Key' 改为 'X-Access-Key'
-        'X-Master-Key': API_KEY, 
+        'X-Access-Key': API_KEY, 
       },
       body: ['PUT', 'POST'].includes(req.method) ? JSON.stringify(req.body) : undefined,
     });
