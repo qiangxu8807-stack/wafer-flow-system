@@ -195,10 +195,8 @@
   </div>
 
   <script>
-    const BIN_ID = '6ad5df11ffd5d1605377f31e'; 
-    // 注意：这里虽然变量名叫 API_KEY，但它实际上是受限的 Access Key
-    const API_KEY = '$2a$10$tzjOhpeUZvXWi6abQZZDeOtLaQp1Mt8PootwZrYBFDfL9B/I3G3Xq';
-    const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+    // 请求你自己的 Vercel 代理接口，不再直接连 JSONBin
+    const API_URL = '/api/jsonbin';
 
     let waferData = []; // 原始数据
     let currentSearch = ''; // 搜索关键字
