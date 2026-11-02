@@ -23,7 +23,6 @@
     button { padding: 10px 20px; background: #1677ff; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
     button:hover { background: #0958d9; }
     
-    /* 🌟 搜索框样式 */
     .search-bar { margin-bottom: 16px; display: flex; gap: 10px; align-items: center; }
     .search-bar input { flex: 1; padding: 12px 16px; border: 2px solid #e8e8e8; border-radius: 8px; font-size: 15px; transition: border 0.2s; }
     .search-bar input:focus { border-color: #1677ff; }
@@ -31,12 +30,11 @@
     .search-bar button:hover { background: #f5f5f5; }
 
     .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #e8e8e8; border-radius: 8px; background: #fff; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 2300px; /* 加宽以容纳所有列 */ }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 2300px; }
     th, td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
     th { background: #fafafa; font-weight: 600; color: #333; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
     tr:hover { background: #fcfcfc; }
     
-    /* 列宽控制 */
     th:nth-child(1) { width: 100px; } th:nth-child(2) { width: 120px; } th:nth-child(3) { width: 120px; }
     th:nth-child(4) { width: 120px; } th:nth-child(5) { width: 150px; } th:nth-child(6) { width: 150px; }
     th:nth-child(7) { width: 90px; }  th:nth-child(8) { width: 180px; } th:nth-child(9) { width: 90px; }
@@ -110,7 +108,6 @@
     </div>
 
     <div id="tab-tester" class="content">
-      <!-- 🌟 搜索栏 -->
       <div class="search-bar">
         <input type="text" id="searchInput" placeholder="🔍 搜索 MASK、LOT、WAFER、负责人或备注（例如输入 SMP032）..." oninput="handleSearch()">
         <button onclick="clearSearch()">清空</button>
@@ -198,10 +195,9 @@
     // 请求你自己的 Vercel 代理接口，不再直接连 JSONBin
     const API_URL = '/api/jsonbin';
 
-    let waferData = []; // 原始数据
-    let currentSearch = ''; // 搜索关键字
+    let waferData = []; 
+    let currentSearch = ''; 
 
-    // 定义存放位置的固定选项
     const fixedLocations = [
       "2F氮气柜", "返回fab", "FIB", "寄出"
     ];
@@ -242,9 +238,8 @@
       const tbody = document.getElementById('tester-tbody');
       tbody.innerHTML = '<tr><td colspan="17" style="text-align:center; color:#999;">加载中...</td></tr>';
       try {
-        const res = await fetch(`${API_URL}/latest?_t=${Date.now()}`, { 
-          headers: { 'X-Access-Key': API_KEY } // ✅ 已修改为 Access Key
-        });
+        // 🟢 修改点 1：删掉 headers 和 /latest
+        const res = await fetch(`${API_URL}?_t=${Date.now()}`);
         if (!res.ok) throw new Error(`获取数据失败: ${res.status}`);
         const json = await res.json();
         waferData = Array.isArray(json.record) ? json.record : [];
@@ -255,7 +250,6 @@
       }
     }
 
-    // 🌟 处理搜索逻辑
     function handleSearch() {
       currentSearch = document.getElementById('searchInput').value.toLowerCase().trim();
       renderTable();
@@ -274,7 +268,6 @@
         return;
       }
 
-      // 🌟 根据搜索词过滤数据
       let dataToRender = waferData;
       if (currentSearch) {
         dataToRender = waferData.filter(item => {
@@ -286,7 +279,6 @@
           const matchTester = (item.testerName || '').toLowerCase().includes(currentSearch);
           const matchPie = (item.pieName || '').toLowerCase().includes(currentSearch);
           const matchNotes = (item.testNotes || '').toLowerCase().includes(currentSearch);
-          
           return matchMask || matchLot || matchWafer || matchRemarks || matchTestReq || matchTester || matchPie || matchNotes;
         });
       }
@@ -297,7 +289,6 @@
       }
 
       tbody.innerHTML = dataToRender.map((item) => {
-        // 🌟 核心防错位：获取真实索引
         const originalIndex = waferData.indexOf(item);
 
         let badgeClass = 'status-default';
@@ -357,15 +348,17 @@
       }
 
       try {
-        const getRes = await fetch(`${API_URL}/latest?_t=${Date.now()}`, { headers: { 'X-Access-Key': API_KEY } }); // ✅ 已修改
+        // 🟢 修改点 2：GET 请求删掉 headers 和 /latest
+        const getRes = await fetch(`${API_URL}?_t=${Date.now()}`);
         if (!getRes.ok) throw new Error(`获取失败: ${getRes.status}`);
         const getJson = await getRes.json();
         let list = Array.isArray(getJson.record) ? getJson.record : [];
         list.push(newRecord);
 
+        // 🟢 修改点 3：PUT 请求删掉 X-Access-Key
         const putRes = await fetch(API_URL, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'X-Access-Key': API_KEY }, // ✅ 已修改
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(list)
         });
         if (!putRes.ok) throw new Error(`提交失败: ${putRes.status}`);
@@ -378,9 +371,6 @@
       }
     }
 
-    // ==========================================
-    // Tester 更新逻辑
-    // ==========================================
     function openUpdateModal(index) {
       const item = waferData[index];
       document.getElementById('upd-id').value = index;
@@ -418,9 +408,10 @@
       waferData[index].testerReport = document.getElementById('upd-testerReport').value.trim();
 
       try {
+        // 🟢 修改点 4：PUT 请求删掉 X-Access-Key
         const res = await fetch(API_URL, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'X-Access-Key': API_KEY }, // ✅ 已修改
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(waferData)
         });
         if (!res.ok) throw new Error(`更新失败: ${res.status}`);
@@ -433,9 +424,6 @@
       }
     }
 
-    // ==========================================
-    // PIE 修改逻辑
-    // ==========================================
     function openPieEditModal(index) {
       const item = waferData[index];
       document.getElementById('edit-pie-id').value = index;
@@ -476,9 +464,10 @@
       waferData[index].pieReport = document.getElementById('edit-pie-report').value.trim();
 
       try {
+        // 🟢 修改点 5：PUT 请求删掉 X-Access-Key
         const res = await fetch(API_URL, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'X-Access-Key': API_KEY }, // ✅ 已修改
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(waferData)
         });
         if (!res.ok) throw new Error(`修改失败: ${res.status}`);
@@ -507,15 +496,18 @@
           const items = JSON.parse(e.target.result);
           statusEl.textContent = `读取成功，共 ${items.length} 条。正在上传...`;
           
-          const getRes = await fetch(`${API_URL}/latest?_t=${Date.now()}`, { headers: { 'X-Access-Key': API_KEY } }); // ✅ 已修改
+          // 🟢 修改点 6：GET 请求删掉 headers 和 /latest
+          const getRes = await fetch(`${API_URL}?_t=${Date.now()}`);
           if (!getRes.ok) throw new Error(`获取失败: ${getRes.status}`);
           const getJson = await getRes.json();
           let list = Array.isArray(getJson.record) ? getJson.record : [];
           
           list = list.concat(items);
+          
+          // 🟢 修改点 7：PUT 请求删掉 X-Access-Key
           const putRes = await fetch(API_URL, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'X-Access-Key': API_KEY }, // ✅ 已修改
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(list)
           });
           if (!putRes.ok) throw new Error(`上传失败，可能文件超限(${putRes.status})`);
