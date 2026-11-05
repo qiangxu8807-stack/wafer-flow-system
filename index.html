@@ -46,13 +46,50 @@
     .link-btn { color: #1677ff; text-decoration: none; font-weight: bold; display: inline-block; padding: 2px 6px; border: 1px solid #1677ff; border-radius: 4px; font-size: 12px; background: #e6f4ff; transition: all 0.2s; }
     .link-btn:hover { background: #1677ff; color: #fff; }
 
-    .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    /* 🌟 优化后的状态标签 (Badge) */
+    .badge { 
+      padding: 6px 10px; 
+      border-radius: 6px; 
+      font-size: 13px; 
+      font-weight: 700; 
+      white-space: nowrap; 
+      display: inline-flex;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
     .status-default { background: #fffbe6; color: #d48806; border: 1px solid #ffe58f; }
     .status-testing { background: #e6f4ff; color: #0958d9; border: 1px solid #91caff; }
     .status-done { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
     .status-hold { background: #fff0f6; color: #c41d7f; border: 1px solid #ffadd2; }
     .status-error { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; }
     
+    /* 🌟 优化后的“测试情况”文本 (testNotes) */
+    .test-notes-box {
+      background-color: #fafafa;
+      border-left: 3px solid #1677ff; /* 左侧蓝线强调 */
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #333;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* 原有的备注文本保持不变 */
+    .note-text { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; font-size: 12px; color: #888; }
+
+    /* 🌟 新增：左侧 MASK 旁边的状态小圆点 */
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
     .btn-edit { padding: 4px 8px; font-size: 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-right: 4px; margin-bottom: 4px; }
     .btn-tester { background: #fff; color: #1677ff; border: 1px solid #1677ff; }
     .btn-pie { background: #fff; color: #fa8c16; border: 1px solid #fa8c16; }
@@ -70,7 +107,6 @@
     .msg-error { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; display: block; }
     .import-box { margin-bottom: 20px; padding: 15px; background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
     .import-box label { font-weight: bold; color: #389e0d; font-size: 14px; }
-    .note-text { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; font-size: 12px; color: #666; }
   </style>
 </head>
 <body>
@@ -293,10 +329,21 @@
         const originalIndex = waferData.indexOf(item);
 
         let badgeClass = 'status-default';
-        if (item.status === '测试中') badgeClass = 'status-testing';
-        if (['完成', '报告PPT', '分析数据excel'].includes(item.status)) badgeClass = 'status-done';
-        if (item.status === 'Hold') badgeClass = 'status-hold';
-        if (item.status === '测试异常') badgeClass = 'status-error';
+        let dotColor = '#faad14'; // 默认黄色（待测试/待分析）
+
+        if (item.status === '测试中') {
+          badgeClass = 'status-testing';
+          dotColor = '#1677ff'; // 蓝色
+        } else if (['完成', '报告PPT', '分析数据excel'].includes(item.status)) {
+          badgeClass = 'status-done';
+          dotColor = '#52c41a'; // 绿色
+        } else if (item.status === 'Hold') {
+          badgeClass = 'status-hold';
+          dotColor = '#eb2f96'; // 粉色
+        } else if (item.status === '测试异常') {
+          badgeClass = 'status-error';
+          dotColor = '#cf1322'; // 红色
+        }
 
         const pieReportHtml = item.pieReport && item.pieReport.startsWith('http') 
           ? `<a href="${item.pieReport}" target="_blank" class="link-btn">📄 查看</a>` : '-';
@@ -306,14 +353,17 @@
         return `
           <tr>
             <td><span class="ship-date">${item.shipDate || '-'}</span></td>
-            <td><strong>${item.mask || '-'}</strong></td>
+            <td>
+              <span class="status-dot" style="background: ${dotColor};"></span>
+              <strong>${item.mask || '-'}</strong>
+            </td>
             <td>${item.lot || '-'}</td>
             <td>${item.wafer || '-'}</td>
             <td><div class="note-text" title="${item.remarks || ''}">${item.remarks || '-'}</div></td>
             <td><div class="note-text" title="${item.testReq || ''}">${item.testReq || '-'}</div></td>
             <td>${pieReportHtml}</td>
             <td>${item.testStartDate || '-'}</td>
-            <td><div class="note-text" title="${item.testNotes || ''}">${item.testNotes || '-'}</div></td>
+            <td><div class="test-notes-box" title="${item.testNotes || ''}">${item.testNotes || '-'}</div></td>
             <td>${item.testerName || '-'}</td>
             <td>${item.pieName || '-'}</td>
             <td>${item.isCut || '-'}</td>
@@ -331,7 +381,7 @@
       }).join('');
     }
 
-    // 🌟 带口令验证的删除记录函数
+    // 带口令验证的删除记录函数
     async function deleteRecord(index) {
       const item = waferData[index];
       
@@ -339,9 +389,11 @@
       const confirmMsg = `⚠️ 警告：确定要删除以下这条记录吗？此操作不可逆！\n\nMASK: ${item.mask}\nLOT: ${item.lot}\nWAFER: ${item.wafer}`;
       if (!confirm(confirmMsg)) return;
 
-      // 第二步：输入删除口令
+      // 第二步：输入删除口令（你可以自己修改这个密码）
+      const SECRET_PASSWORD = 'xqxq'; // 修改此处即可更改密码
       const password = prompt("请输入删除口令：");
-      if (!password || password.trim() !== 'xqxq') {
+      
+      if (!password || password.trim() !== SECRET_PASSWORD) {
         alert("口令错误，删除已取消！");
         return;
       }
