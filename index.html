@@ -30,14 +30,14 @@
     .search-bar button:hover { background: #f5f5f5; }
 
     .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #e8e8e8; border-radius: 8px; background: #fff; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 2300px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; min-width: 2400px; }
     th, td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
     th { background: #fafafa; font-weight: 600; color: #333; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
     tr:hover { background: #fcfcfc; }
     
     th:nth-child(1) { width: 100px; } th:nth-child(2) { width: 120px; } th:nth-child(3) { width: 120px; }
     th:nth-child(4) { width: 120px; } th:nth-child(5) { width: 150px; } th:nth-child(6) { width: 150px; }
-    th:nth-child(7) { width: 90px; }  th:nth-child(8) { width: 180px; } th:nth-child(9) { width: 90px; }
+    th:nth-child(7) { width: 90px; }  th:nth-child(8) { width: 120px; } th:nth-child(9) { width: 180px; }
     th:nth-child(10) { width: 90px; } th:nth-child(11) { width: 80px; } th:nth-child(12) { width: 100px; }
     th:nth-child(13) { width: 90px; } th:nth-child(14) { width: 80px; } th:nth-child(15) { width: 80px; }
     th:nth-child(16) { width: 100px; } th:nth-child(17) { width: 180px; } 
@@ -63,10 +63,10 @@
     .status-hold { background: #fff0f6; color: #c41d7f; border: 1px solid #ffadd2; }
     .status-error { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; }
     
-    /* 🌟 优化后的“测试情况”文本 (testNotes) */
+    /* 🌟 优化后的“测试情况”文本 - 悬停展示版 */
     .test-notes-box {
       background-color: #fafafa;
-      border-left: 3px solid #1677ff; /* 左侧蓝线强调 */
+      border-left: 3px solid #1677ff; 
       padding: 6px 8px;
       border-radius: 4px;
       font-size: 12px;
@@ -80,7 +80,7 @@
     /* 原有的备注文本保持不变 */
     .note-text { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; font-size: 12px; color: #888; }
 
-    /* 🌟 新增：左侧 MASK 旁边的状态小圆点 */
+    /* 🌟 左侧 MASK 旁边的状态小圆点 */
     .status-dot {
       display: inline-block;
       width: 8px;
@@ -389,8 +389,8 @@
       const confirmMsg = `⚠️ 警告：确定要删除以下这条记录吗？此操作不可逆！\n\nMASK: ${item.mask}\nLOT: ${item.lot}\nWAFER: ${item.wafer}`;
       if (!confirm(confirmMsg)) return;
 
-      // 第二步：输入删除口令（你可以自己修改这个密码）
-      const SECRET_PASSWORD = 'xqxq'; // 修改此处即可更改密码
+      // 第二步：输入删除口令
+      const SECRET_PASSWORD = 'xqxq'; // 👈 在这里修改密码
       const password = prompt("请输入删除口令：");
       
       if (!password || password.trim() !== SECRET_PASSWORD) {
