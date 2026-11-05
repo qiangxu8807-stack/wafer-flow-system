@@ -339,9 +339,9 @@
       const confirmMsg = `⚠️ 警告：确定要删除以下这条记录吗？此操作不可逆！\n\nMASK: ${item.mask}\nLOT: ${item.lot}\nWAFER: ${item.wafer}`;
       if (!confirm(confirmMsg)) return;
 
-      // 第二步：输入删除口令（你可以自己修改 '8888' 这个密码）
-      const password = prompt("请输入删除口令（默认：8888）：");
-      if (password !== '8888') {
+      // 第二步：输入删除口令
+      const password = prompt("请输入删除口令：");
+      if (!password || password.trim() !== 'xqxq') {
         alert("口令错误，删除已取消！");
         return;
       }
