@@ -48,7 +48,7 @@
     .link-btn { color: #1677ff; text-decoration: none; font-weight: bold; display: inline-block; padding: 4px 8px; border: 1px solid #1677ff; border-radius: 4px; font-size: 12px; background: #e6f4ff; transition: all 0.2s; white-space: nowrap; }
     .link-btn:hover { background: #1677ff; color: #fff; }
     
-    /* 🌟 新增：本地路径样式（灰底等宽字体，点击复制） */
+    /* 🌟 本地路径样式（灰底等宽字体，点击复制） */
     .path-btn {
       display: inline-block;
       max-width: 160px;
@@ -132,7 +132,7 @@
       <div class="form-grid" style="grid-template-columns: 1fr;">
         <div class="form-group"><label>remarks <span>*</span></label><input type="text" id="pie-remarks"></div>
         <div class="form-group"><label>测试内容 <span>*</span></label><textarea id="pie-testReq"></textarea></div>
-        <div class="form-group"><label>LOT 报告链接/路径（选填）</label><input type="text" id="pie-report" placeholder="支持网址或公盘路径 \\192.168.x.x"></div>
+        <div class="form-group"><label>LOT 报告链接/路径（选填）</label><input type="text" id="pie-report" placeholder="支持网址或局域网路径 \\192.168.x.x"></div>
       </div>
       <div style="text-align: right; margin-top: 10px;">
         <button onclick="submitPIE()">提交发货登记</button>
@@ -191,7 +191,7 @@
         </div>
       </div>
       <div class="form-group" style="margin-top: 16px;"><label>测试情况</label><textarea id="upd-notes"></textarea></div>
-      <div class="form-group" style="margin-top: 16px;"><label>测试报告链接/路径（选填）</label><input type="text" id="upd-testerReport" placeholder="支持网址或公盘路径 \\192.168.x.x"></div>
+      <div class="form-group" style="margin-top: 16px;"><label>测试报告链接/路径（选填）</label><input type="text" id="upd-testerReport" placeholder="支持网址或局域网路径 \\192.168.x.x"></div>
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeModal('updateModal')">取消</button>
         <button onclick="submitUpdate()">保存更新</button>
@@ -291,7 +291,6 @@
       renderTable();
     }
 
-    // 🌟 新增：一键复制文本到剪贴板函数
     function copyTextToClipboard(text, event) {
       event.stopPropagation(); 
       navigator.clipboard.writeText(text).then(() => {
@@ -338,19 +337,27 @@
         else if (item.status === 'Hold') { badgeClass = 'status-hold'; dotColor = '#eb2f96'; }
         else if (item.status === '测试异常') { badgeClass = 'status-error'; dotColor = '#cf1322'; }
 
-        // 🌟 核心修改：智能识别 网页、路径、纯文本
+        // 🌟 核心修改：智能识别 网页、路径（自动纠错单斜杠）、纯文本
         const formatReport = (text) => {
           if (!text || text.trim() === '') return '-';
-          const cleanText = text.trim();
+          let cleanText = text.trim();
           
           // 1. 是网页链接：蓝色按钮
           if (cleanText.startsWith('http://') || cleanText.startsWith('https://')) {
             return `<a href="${cleanText}" target="_blank" class="link-btn" title="${cleanText}">📄 查看</a>`;
           }
           
-          // 2. 是局域网路径 (\\开头) 或其他带盘符的路径：灰底等宽字体，点击复制
-          if (cleanText.startsWith('\\\\') || cleanText.match(/^[a-zA-Z]:\\/)) {
-            return `<div class="path-btn" title="点击复制路径：${cleanText}" onclick="copyTextToClipboard('${cleanText}', event)">💻 ${cleanText}</div>`;
+          // 2. 兼容单斜杠或双斜杠，或者盘符路径
+          if (cleanText.startsWith('\\') || cleanText.match(/^[a-zA-Z]:\\/)) {
+            // 自动纠错：如果只有单个反斜杠，自动补齐为标准的双反斜杠
+            if (cleanText.startsWith('\\') && !cleanText.startsWith('\\\\')) {
+                cleanText = '\\' + cleanText; 
+            }
+            
+            // 为了防止 JS 字符串转义问题，把单斜杠替换成安全字符再传给 onclick
+            const safePath = cleanText.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+            
+            return `<div class="path-btn" title="点击复制路径：${cleanText}" onclick="copyTextToClipboard('${safePath}', event)">💻 ${cleanText}</div>`;
           }
           
           // 3. 普通纯文本
@@ -398,7 +405,7 @@
       const confirmMsg = `⚠️ 警告：确定要删除以下这条记录吗？此操作不可逆！\n\nMASK: ${item.mask}\nLOT: ${item.lot}\nWAFER: ${item.wafer}`;
       if (!confirm(confirmMsg)) return;
 
-      const SECRET_PASSWORD = 'xqxq'; // 
+      const SECRET_PASSWORD = 'xqxq'; 
       const password = prompt("请输入删除口令：");
       
       if (!password || password.trim() !== SECRET_PASSWORD) {
