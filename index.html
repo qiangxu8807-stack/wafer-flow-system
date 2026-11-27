@@ -85,7 +85,6 @@
   <div class="container">
     <h1>💻 SITRI-SIPH 晶圆流转系统</h1>
     
-    <!-- 🌟 核心修复：加入 data-target 防止单引号解析问题 -->
     <div class="tabs">
       <div class="tab active" data-target="pie" onclick="switchTab('pie')">📦 PIE 出货登记</div>
       <div class="tab" data-target="tester" onclick="switchTab('tester')">🔬 实验室流转看板</div>
@@ -149,7 +148,7 @@
     <div class="modal-content">
       <h2>更新测试进度</h2>
       <input type="hidden" id="upd-id">
-      <input type="hidden" id="upd-record-id"> <!-- 核心修复：隐藏域保存真实ID -->
+      <input type="hidden" id="upd-record-id">
       <div class="form-grid">
         <div class="form-group"><label>测试负责人</label><input type="text" id="upd-testerName" placeholder="您的名字"></div>
         <div class="form-group"><label>晶圆状态</label>
@@ -185,7 +184,7 @@
     <div class="modal-content">
       <h2>修改登记信息 (PIE)</h2>
       <input type="hidden" id="edit-pie-id">
-      <input type="hidden" id="edit-pie-record-id"> <!-- 核心修复：隐藏域保存真实ID -->
+      <input type="hidden" id="edit-pie-record-id">
       <div class="form-grid">
         <div class="form-group"><label>MASK <span>*</span></label><input type="text" id="edit-pie-mask"></div>
         <div class="form-group"><label>LOT <span>*</span></label><input type="text" id="edit-pie-lot"></div>
@@ -234,7 +233,6 @@
       document.getElementById('pie-shipDate').valueAsDate = new Date();
     });
 
-    // 🌟 核心修复：更健壮的切换逻辑，彻底抛弃基于字符串匹配的 querySelector
     function switchTab(tabName) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
@@ -262,15 +260,26 @@
         const res = await fetch(`${API_URL}?_t=${Date.now()}`);
         if (!res.ok) throw new Error(`获取数据失败: ${res.status}`);
         const json = await res.json();
-        waferData = Array.isArray(json.record) ? json.record : [];
+        let serverData = Array.isArray(json.record) ? json.record : [];
         
-        // 🌟 自动为缺失 ID 的老数据补上唯一 ID
-        waferData.forEach(item => {
+        // 🌟 终极修复：发现没有 ID 的老数据，自动补齐并静默写回云端
+        let needSync = false;
+        serverData.forEach(item => {
           if (!item.id) {
             item.id = Date.now().toString() + Math.random().toString(36).substring(2, 6);
+            needSync = true;
           }
         });
 
+        if (needSync) {
+          await fetch(API_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(serverData)
+          });
+        }
+
+        waferData = serverData;
         waferData.sort((a, b) => (b.shipDate || '').localeCompare(a.shipDate || ''));
         renderTable();
       } catch (e) {
@@ -289,8 +298,10 @@
       renderTable();
     }
 
-    function copyTextToClipboard(text, event) {
+    // 🌟 核心升级：使用 encodeURIComponent 处理复制，防止任何反斜线、引号导致崩溃
+    function copyTextToClipboard(encodedText, event) {
       event.stopPropagation(); 
+      const text = decodeURIComponent(encodedText);
       navigator.clipboard.writeText(text).then(() => {
         showMsg('路径已复制到剪贴板', 'success');
       }).catch(err => {
@@ -347,9 +358,9 @@
             if (cleanText.startsWith('\\') && !cleanText.startsWith('\\\\')) {
                 cleanText = '\\' + cleanText; 
             }
-            // 🌟 防止路径中包含特殊字符破坏 HTML 结构
-            const safePath = cleanText.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            return `<div class="path-btn" title="点击复制路径：${cleanText}" onclick="copyTextToClipboard('${safePath}', event)">💻 ${cleanText}</div>`;
+            // 使用 encodeURIComponent 安全转义，避免特殊字符破坏 onclick
+            const safeEncodedText = encodeURIComponent(cleanText);
+            return `<div class="path-btn" title="点击复制路径：${cleanText}" onclick="copyTextToClipboard('${safeEncodedText}', event)">💻 ${cleanText}</div>`;
           }
           
           return `<div class="report-text" title="${cleanText}">${cleanText}</div>`;
@@ -411,7 +422,7 @@
         let serverData = Array.isArray(getJson.record) ? getJson.record : [];
 
         const targetIdx = serverData.findIndex(r => r.id === recordId);
-        if (targetIdx === -1) throw new Error('记录在云端已不存在，可能被其他人删除了');
+        if (targetIdx === -1) throw new Error('记录在云端已不存在，可能被其他人删除了，请刷新页面');
 
         Object.assign(serverData[targetIdx], updatedFields);
 
@@ -461,7 +472,7 @@
         let serverData = Array.isArray(getJson.record) ? getJson.record : [];
 
         const targetIdx = serverData.findIndex(r => r.id === recordId);
-        if (targetIdx === -1) throw new Error('记录在云端已不存在');
+        if (targetIdx === -1) throw new Error('记录在云端已不存在，请刷新页面');
 
         Object.assign(serverData[targetIdx], updatedFields);
 
