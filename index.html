@@ -85,9 +85,10 @@
   <div class="container">
     <h1>💻 SITRI-SIPH 晶圆流转系统</h1>
     
+    <!-- 🌟 核心修复：加入 data-target 防止单引号解析问题 -->
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('pie')">📦 PIE 出货登记</div>
-      <div class="tab" onclick="switchTab('tester')">🔬 实验室流转看板</div>
+      <div class="tab active" data-target="pie" onclick="switchTab('pie')">📦 PIE 出货登记</div>
+      <div class="tab" data-target="tester" onclick="switchTab('tester')">🔬 实验室流转看板</div>
     </div>
 
     <div id="msg" class="message"></div>
@@ -233,7 +234,427 @@
       document.getElementById('pie-shipDate').valueAsDate = new Date();
     });
 
-    function switchTab(tab) {
+    // 🌟 核心修复：更健壮的切换逻辑，彻底抛弃基于字符串匹配的 querySelector
+    function switchTab(tabName) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
-      document.querySelector
+      
+      const tabEl = document.querySelector(`.tab[data-target="${tabName}"]`);
+      const contentEl = document.getElementById(`tab-${tabName}`);
+      
+      if (tabEl) tabEl.classList.add('active');
+      if (contentEl) contentEl.classList.add('active');
+      
+      if (tabName === 'tester') loadData();
+    }
+
+    function showMsg(text, type) {
+      const el = document.getElementById('msg');
+      el.textContent = text;
+      el.className = 'message msg-' + type;
+      setTimeout(() => el.className = 'message', 3000);
+    }
+
+    async function loadData() {
+      const tbody = document.getElementById('tester-tbody');
+      tbody.innerHTML = '<tr><td colspan="17" style="text-align:center; color:#999;">加载中...</td></tr>';
+      try {
+        const res = await fetch(`${API_URL}?_t=${Date.now()}`);
+        if (!res.ok) throw new Error(`获取数据失败: ${res.status}`);
+        const json = await res.json();
+        waferData = Array.isArray(json.record) ? json.record : [];
+        
+        // 🌟 自动为缺失 ID 的老数据补上唯一 ID
+        waferData.forEach(item => {
+          if (!item.id) {
+            item.id = Date.now().toString() + Math.random().toString(36).substring(2, 6);
+          }
+        });
+
+        waferData.sort((a, b) => (b.shipDate || '').localeCompare(a.shipDate || ''));
+        renderTable();
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="17" style="text-align:center; color:red;">加载失败: ${e.message}</td></tr>`;
+      }
+    }
+
+    function handleSearch() {
+      currentSearch = document.getElementById('searchInput').value.toLowerCase().trim();
+      renderTable();
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      currentSearch = '';
+      renderTable();
+    }
+
+    function copyTextToClipboard(text, event) {
+      event.stopPropagation(); 
+      navigator.clipboard.writeText(text).then(() => {
+        showMsg('路径已复制到剪贴板', 'success');
+      }).catch(err => {
+        alert('复制失败，请手动选中复制');
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tester-tbody');
+      if (!waferData || waferData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="17" style="text-align:center; color:#999;">暂无流转记录</td></tr>';
+        return;
+      }
+
+      let dataToRender = waferData;
+      if (currentSearch) {
+        dataToRender = waferData.filter(item => {
+          const matchMask = (item.mask || '').toLowerCase().includes(currentSearch);
+          const matchLot = (item.lot || '').toLowerCase().includes(currentSearch);
+          const matchWafer = (item.wafer || '').toLowerCase().includes(currentSearch);
+          const matchRemarks = (item.remarks || '').toLowerCase().includes(currentSearch);
+          const matchTestReq = (item.testReq || '').toLowerCase().includes(currentSearch);
+          const matchTester = (item.testerName || '').toLowerCase().includes(currentSearch);
+          const matchPie = (item.pieName || '').toLowerCase().includes(currentSearch);
+          const matchNotes = (item.testNotes || '').toLowerCase().includes(currentSearch);
+          return matchMask || matchLot || matchWafer || matchRemarks || matchTestReq || matchTester || matchPie || matchNotes;
+        });
+      }
+
+      if (dataToRender.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="17" style="text-align:center; color:#999;">没有找到匹配的记录</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = dataToRender.map((item) => {
+        const originalIndex = waferData.indexOf(item);
+
+        let badgeClass = 'status-default';
+        let dotColor = '#faad14'; 
+        if (item.status === '测试中') { badgeClass = 'status-testing'; dotColor = '#1677ff'; }
+        else if (['完成', '报告PPT', '无需测试'].includes(item.status)) { badgeClass = 'status-done'; dotColor = '#52c41a'; }
+        else if (item.status === 'Hold') { badgeClass = 'status-hold'; dotColor = '#eb2f96'; }
+        else if (item.status === '测试异常') { badgeClass = 'status-error'; dotColor = '#cf1322'; }
+
+        const formatReport = (text) => {
+          if (!text || text.trim() === '') return '-';
+          let cleanText = text.trim();
+          
+          if (cleanText.startsWith('http://') || cleanText.startsWith('https://')) {
+            return `<a href="${cleanText}" target="_blank" class="link-btn" title="${cleanText}">📄 查看</a>`;
+          }
+          
+          if (cleanText.startsWith('\\') || cleanText.match(/^[a-zA-Z]:\\/)) {
+            if (cleanText.startsWith('\\') && !cleanText.startsWith('\\\\')) {
+                cleanText = '\\' + cleanText; 
+            }
+            // 🌟 防止路径中包含特殊字符破坏 HTML 结构
+            const safePath = cleanText.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            return `<div class="path-btn" title="点击复制路径：${cleanText}" onclick="copyTextToClipboard('${safePath}', event)">💻 ${cleanText}</div>`;
+          }
+          
+          return `<div class="report-text" title="${cleanText}">${cleanText}</div>`;
+        };
+
+        const pieReportHtml = formatReport(item.pieReport);
+        const testerReportHtml = formatReport(item.testerReport);
+
+        return `
+          <tr>
+            <td><span class="ship-date">${item.shipDate || '-'}</span></td>
+            <td>
+              <span class="status-dot" style="background: ${dotColor};"></span>
+              <strong>${item.mask || '-'}</strong>
+            </td>
+            <td>${item.lot || '-'}</td>
+            <td>${item.wafer || '-'}</td>
+            <td><div class="note-text" title="${item.remarks || ''}">${item.remarks || '-'}</div></td>
+            <td><div class="note-text" title="${item.testReq || ''}">${item.testReq || '-'}</div></td>
+            <td>${pieReportHtml}</td>
+            <td>${item.testStartDate || '-'}</td>
+            <td><div class="test-notes-box" title="${item.testNotes || ''}">${item.testNotes || '-'}</div></td>
+            <td>${item.testerName || '-'}</td>
+            <td>${item.pieName || '-'}</td>
+            <td>${item.isCut || '-'}</td>
+            <td>${item.location || '-'}</td>
+            <td><span class="badge ${badgeClass}">${item.status || '待测试'}</span></td>
+            <td>${item.testEndDate || '-'}</td>
+            <td>${testerReportHtml}</td>
+            <td>
+              <button class="btn-edit btn-tester" onclick="openUpdateModal(${originalIndex})">测试更新</button>
+              <button class="btn-edit btn-pie" onclick="openPieEditModal(${originalIndex})">改PIE信息</button>
+              <button class="btn-edit btn-delete" onclick="deleteRecord(${originalIndex})">删除</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function submitUpdate() {
+      const recordId = document.getElementById('upd-record-id').value;
+      if (!recordId) return alert("数据异常：缺少唯一ID，无法更新");
+      
+      const updatedFields = {
+        testerName: document.getElementById('upd-testerName').value.trim(),
+        status: document.getElementById('upd-status').value,
+        isCut: document.getElementById('upd-isCut').value,
+        testStartDate: document.getElementById('upd-startDate').value,
+        testEndDate: document.getElementById('upd-endDate').value,
+        location: document.getElementById('upd-location').value,
+        testNotes: document.getElementById('upd-notes').value.trim(),
+        testerReport: document.getElementById('upd-testerReport').value.trim()
+      };
+
+      try {
+        const getRes = await fetch(`${API_URL}?_t=${Date.now()}`);
+        if (!getRes.ok) throw new Error(`获取最新数据失败`);
+        const getJson = await getRes.json();
+        let serverData = Array.isArray(getJson.record) ? getJson.record : [];
+
+        const targetIdx = serverData.findIndex(r => r.id === recordId);
+        if (targetIdx === -1) throw new Error('记录在云端已不存在，可能被其他人删除了');
+
+        Object.assign(serverData[targetIdx], updatedFields);
+
+        const putRes = await fetch(API_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(serverData)
+        });
+        if (!putRes.ok) throw new Error(`保存失败: ${putRes.status}`);
+        
+        closeModal('updateModal');
+        showMsg('测试进度更新成功', 'success');
+        
+        waferData = serverData;
+        waferData.sort((a, b) => (b.shipDate || '').localeCompare(a.shipDate || ''));
+        renderTable();
+
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function submitPieEdit() {
+      const recordId = document.getElementById('edit-pie-record-id').value;
+      if (!recordId) return alert("数据异常：缺少唯一ID，无法修改");
+      
+      const mask = document.getElementById('edit-pie-mask').value.trim();
+      const lot = document.getElementById('edit-pie-lot').value.trim();
+      const wafer = document.getElementById('edit-pie-wafer').value.trim();
+      const shipDate = document.getElementById('edit-pie-shipDate').value;
+      const pieName = document.getElementById('edit-pie-name').value.trim();
+      const remarks = document.getElementById('edit-pie-remarks').value.trim();
+      const testReq = document.getElementById('edit-pie-testReq').value.trim();
+      const pieReport = document.getElementById('edit-pie-report').value.trim();
+
+      if (!mask || !lot || !wafer || !shipDate || !pieName || !remarks || !testReq) {
+        alert("请填写所有带 * 的必填项！");
+        return;
+      }
+
+      const updatedFields = { mask, lot, wafer, shipDate, pieName, remarks, testReq, pieReport };
+
+      try {
+        const getRes = await fetch(`${API_URL}?_t=${Date.now()}`);
+        if (!getRes.ok) throw new Error(`获取最新数据失败`);
+        const getJson = await getRes.json();
+        let serverData = Array.isArray(getJson.record) ? getJson.record : [];
+
+        const targetIdx = serverData.findIndex(r => r.id === recordId);
+        if (targetIdx === -1) throw new Error('记录在云端已不存在');
+
+        Object.assign(serverData[targetIdx], updatedFields);
+
+        const putRes = await fetch(API_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(serverData)
+        });
+        if (!putRes.ok) throw new Error(`修改失败: ${putRes.status}`);
+        
+        closeModal('pieEditModal');
+        showMsg('登记信息修改成功', 'success');
+        
+        waferData = serverData;
+        waferData.sort((a, b) => (b.shipDate || '').localeCompare(a.shipDate || ''));
+        renderTable();
+
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function deleteRecord(index) {
+      const item = waferData[index];
+      const recordId = item.id;
+      
+      const confirmMsg = `⚠️ 警告：确定要删除以下这条记录吗？此操作不可逆！\n\nMASK: ${item.mask}\nLOT: ${item.lot}\nWAFER: ${item.wafer}`;
+      if (!confirm(confirmMsg)) return;
+
+      const SECRET_PASSWORD = 'xqxq'; 
+      const password = prompt("请输入删除口令：");
+      
+      if (!password || password.trim() !== SECRET_PASSWORD) {
+        alert("口令错误，删除已取消！");
+        return;
+      }
+
+      try {
+        const getRes = await fetch(`${API_URL}?_t=${Date.now()}`);
+        if (!getRes.ok) throw new Error(`获取最新数据失败`);
+        const getJson = await getRes.json();
+        let serverData = Array.isArray(getJson.record) ? getJson.record : [];
+
+        const newData = serverData.filter(r => r.id !== recordId);
+
+        const putRes = await fetch(API_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newData)
+        });
+        if (!putRes.ok) throw new Error(`删除失败: ${putRes.status}`);
+        
+        showMsg('记录已成功删除', 'success');
+        
+        waferData = newData;
+        waferData.sort((a, b) => (b.shipDate || '').localeCompare(a.shipDate || ''));
+        renderTable();
+
+      } catch (e) {
+        alert(e.message);
+        loadData(); 
+      }
+    }
+
+    function openUpdateModal(index) {
+      const item = waferData[index];
+      document.getElementById('upd-record-id').value = item.id;
+      document.getElementById('upd-testerName').value = item.testerName || '';
+      document.getElementById('upd-status').value = item.status || '待测试';
+      document.getElementById('upd-isCut').value = item.isCut || '';
+      document.getElementById('upd-startDate').value = item.testStartDate || '';
+      document.getElementById('upd-endDate').value = item.testEndDate || '';
+      document.getElementById('upd-testerReport').value = item.testerReport || '';
+      
+      const locSelect = document.getElementById('upd-location');
+      Array.from(locSelect.options).forEach(opt => {
+         if (opt.value !== "" && !fixedLocations.includes(opt.value)) opt.remove();
+      });
+      if (item.location && !Array.from(locSelect.options).some(opt => opt.value === item.location)) {
+        let newOpt = document.createElement('option');
+        newOpt.value = item.location; newOpt.textContent = item.location + " (历史)";
+        locSelect.appendChild(newOpt);
+      }
+      locSelect.value = item.location || '';
+
+      document.getElementById('upd-notes').value = item.testNotes || '';
+      document.getElementById('updateModal').style.display = 'flex';
+    }
+
+    function openPieEditModal(index) {
+      const item = waferData[index];
+      document.getElementById('edit-pie-record-id').value = item.id;
+      document.getElementById('edit-pie-mask').value = item.mask || '';
+      document.getElementById('edit-pie-lot').value = item.lot || '';
+      document.getElementById('edit-pie-wafer').value = item.wafer || '';
+      document.getElementById('edit-pie-shipDate').value = item.shipDate || '';
+      document.getElementById('edit-pie-name').value = item.pieName || '';
+      document.getElementById('edit-pie-remarks').value = item.remarks || '';
+      document.getElementById('edit-pie-testReq').value = item.testReq || '';
+      document.getElementById('edit-pie-report').value = item.pieReport || '';
+      document.getElementById('pieEditModal').style.display = 'flex';
+    }
+
+    async function submitPIE() {
+      const newRecord = {
+        id: Date.now().toString() + Math.random().toString(36).substring(2, 6),
+        mask: document.getElementById('pie-mask').value.trim(),
+        lot: document.getElementById('pie-lot').value.trim(),
+        wafer: document.getElementById('pie-wafer').value.trim(),
+        remarks: document.getElementById('pie-remarks').value.trim(),
+        testReq: document.getElementById('pie-testReq').value.trim(),
+        shipDate: document.getElementById('pie-shipDate').value,
+        pieName: document.getElementById('pie-name').value.trim(),
+        pieReport: document.getElementById('pie-report').value.trim(),
+        testerReport: '', testerName: '', testStartDate: '', testEndDate: '', status: '待测试', location: '', isCut: '', testNotes: ''
+      };
+
+      if (!newRecord.mask || !newRecord.lot || !newRecord.wafer || !newRecord.shipDate || !newRecord.pieName || !newRecord.remarks || !newRecord.testReq) {
+        return showMsg('请填写所有带 * 的必填项', 'error');
+      }
+
+      try {
+        const getRes = await fetch(`${API_URL}?_t=${Date.now()}`);
+        if (!getRes.ok) throw new Error(`获取失败: ${getRes.status}`);
+        const getJson = await getRes.json();
+        let list = Array.isArray(getJson.record) ? getJson.record : [];
+        list.push(newRecord);
+
+        const putRes = await fetch(API_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(list)
+        });
+        if (!putRes.ok) throw new Error(`提交失败: ${putRes.status}`);
+
+        showMsg('提交成功', 'success');
+        ['pie-mask', 'pie-lot', 'pie-wafer', 'pie-remarks', 'pie-testReq', 'pie-report'].forEach(id => document.getElementById(id).value = '');
+        switchTab('tester');
+        
+        waferData = list;
+        waferData.sort((a, b) => (b.shipDate || '').localeCompare(a.shipDate || ''));
+        renderTable();
+        
+      } catch (e) {
+        showMsg(e.message, 'error');
+      }
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    async function handleBatchImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const statusEl = document.getElementById('batchStatus');
+      statusEl.textContent = '正在读取文件...';
+      
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const items = JSON.parse(e.target.result);
+          statusEl.textContent = `读取成功，共 ${items.length} 条。正在上传...`;
+          
+          const getRes = await fetch(`${API_URL}?_t=${Date.now()}`);
+          if (!getRes.ok) throw new Error(`获取失败: ${getRes.status}`);
+          const getJson = await getRes.json();
+          let list = Array.isArray(getJson.record) ? getJson.record : [];
+          
+          const newItems = items.map(it => ({
+            ...it,
+            id: it.id || (Date.now().toString() + Math.random().toString(36).substring(2, 6))
+          }));
+
+          list = list.concat(newItems);
+          
+          const putRes = await fetch(API_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(list)
+          });
+          if (!putRes.ok) throw new Error(`上传失败，可能文件超限(${putRes.status})`);
+
+          statusEl.textContent = `🎉 导入成功！共写入 ${items.length} 条记录。`;
+          statusEl.style.color = 'green';
+          loadData();
+        } catch (err) {
+          statusEl.textContent = `❌ 导入失败: ${err.message}`;
+          statusEl.style.color = 'red';
+        }
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
